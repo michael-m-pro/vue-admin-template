@@ -23,6 +23,30 @@ const users = {
   }
 }
 
+const asyncRoutes = [
+  {
+    path: '/example',
+    component: 'Layout',
+    redirect: '/example/table',
+    name: 'Example',
+    meta: { title: 'Example', icon: 'el-icon-s-help' },
+    children: [
+      {
+        path: 'table',
+        name: 'Table',
+        component: '/example/table/index',
+        meta: { title: 'Table', icon: 'table' }
+      },
+      {
+        path: 'tree',
+        name: 'Tree',
+        component: '/example/tree/index',
+        meta: { title: 'Tree', icon: 'tree' }
+      }
+    ]
+  }
+]
+
 module.exports = [
   // user login
   {
@@ -54,6 +78,27 @@ module.exports = [
     response: config => {
       const { token } = config.query
       const info = users[token]
+
+      // mock error
+      if (!info) {
+        return {
+          code: 50008,
+          message: 'Login failed, unable to get user details.'
+        }
+      }
+
+      return {
+        code: 20000,
+        data: info
+      }
+    }
+  },
+  // get user menu
+  {
+    url: '/vue-admin-template/user/getRoutes\.*',
+    type: 'get',
+    response: config => {
+      const info = asyncRoutes
 
       // mock error
       if (!info) {

@@ -22,3 +22,10 @@ export function logout() {
     method: 'post'
   })
 }
+
+export function getRoutes() {
+  return request({
+    url: '/vue-admin-template/user/getRoutes',
+    method: 'get'
+  })
+}

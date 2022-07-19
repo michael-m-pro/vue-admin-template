@@ -40,13 +40,16 @@
         </template>
       </el-table-column>
     </el-table>
+    <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="fetchData" />
   </div>
 </template>
 
 <script>
 import { getList } from '@/api/table'
+import Pagination from '@/components/Pagination'
 
 export default {
+  components: { Pagination },
   filters: {
     statusFilter(status) {
       const statusMap = {
@@ -60,7 +63,16 @@ export default {
   data() {
     return {
       list: null,
-      listLoading: true
+      total: 0,
+      listLoading: true,
+      listQuery: {
+        page: 1,
+        limit: 20,
+        importance: undefined,
+        title: undefined,
+        type: undefined,
+        sort: '+id'
+      }
     }
   },
   created() {
@@ -69,8 +81,9 @@ export default {
   methods: {
     fetchData() {
       this.listLoading = true
-      getList().then(response => {
+      getList(this.listQuery).then(response => {
         this.list = response.data.items
+        this.total = response.data.total
         this.listLoading = false
       })
     }

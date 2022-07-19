@@ -26,21 +26,21 @@ const users = {
 const asyncRoutes = [
   {
     path: '/example',
+    name: 'Example',
     component: 'Layout',
     redirect: '/example/table',
-    name: 'Example',
     meta: { title: 'Example', icon: 'el-icon-s-help' },
     children: [
       {
-        path: 'table',
         name: 'Table',
-        component: '/example/table/index',
+        path: 'table',
+        component: 'table/index',
         meta: { title: 'Table', icon: 'table' }
       },
       {
         path: 'tree',
         name: 'Tree',
-        component: '/example/tree/index',
+        component: 'tree/index',
         meta: { title: 'Tree', icon: 'tree' }
       }
     ]

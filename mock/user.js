@@ -34,13 +34,13 @@ const asyncRoutes = [
       {
         name: 'Table',
         path: 'table',
-        component: 'table/index',
+        component: 'example/table/index',
         meta: { title: 'Table', icon: 'table' }
       },
       {
         path: 'tree',
         name: 'Tree',
-        component: 'tree/index',
+        component: 'example/tree/index',
         meta: { title: 'Tree', icon: 'tree' }
       }
     ]

@@ -1,11 +1,14 @@
 <template>
-  <div class="login-container">
+  <div v-if="!showQrCode" class="login-container">
     <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" auto-complete="on" label-position="left">
 
       <div class="title-container">
-        <h3 class="title">Login Form</h3>
+        <h3 class="title">Login In</h3>
       </div>
 
+      <div class="title-text">
+        <span>Email or Username</span>
+      </div>
       <el-form-item prop="username">
         <span class="svg-container">
           <svg-icon icon-class="user" />
@@ -13,7 +16,7 @@
         <el-input
           ref="username"
           v-model="loginForm.username"
-          placeholder="Username"
+          placeholder="Email or Username"
           name="username"
           type="text"
           tabindex="1"
@@ -21,6 +24,9 @@
         />
       </el-form-item>
 
+      <div class="title-text">
+        <span>Password</span>
+      </div>
       <el-form-item prop="password">
         <span class="svg-container">
           <svg-icon icon-class="password" />
@@ -41,12 +47,66 @@
         </span>
       </el-form-item>
 
+      <div class="title-text">
+        <label>Google Authenticator 2FA token</label>
+      </div>
+      <el-form-item prop="googleCode">
+        <span class="svg-container">
+          <svg-icon icon-class="key" />
+        </span>
+        <el-input
+          ref="googleCode"
+          v-model="loginForm.googleCode"
+          type="text"
+          placeholder="Google Authenticator 2FA token (6 digits)"
+          name="googleCode"
+          tabindex="3"
+          auto-complete="on"
+          @keyup.enter.native="handleLogin"
+        />
+      </el-form-item>
+
       <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">Login</el-button>
 
-      <div class="tips">
-        <span style="margin-right:20px;">username: admin</span>
-        <span> password: any</span>
+    </el-form>
+
+  </div>
+
+  <div v-else class="login-container">
+    <el-form ref="GAForm" :model="GAForm" :rules="GARules" class="login-form" label-position="left">
+      <div class="title-container">
+        <h3 class="title">Add Google Authenticator</h3>
       </div>
+
+      <div class="title-text">
+        <label>Google Authenticator 2FA token</label>
+      </div>
+      <el-form-item prop="googleCode">
+        <span class="svg-container">
+          <svg-icon icon-class="key" />
+        </span>
+        <el-input
+          ref="googleCode"
+          v-model="GAForm.googleCode"
+          type="text"
+          placeholder="Google Authenticator 2FA token (6 digits)"
+          name="googleCode"
+          tabindex="1"
+          @keyup.enter.native="handleAddGA"
+        />
+      </el-form-item>
+      <div class="tips" :class="showQrCode?'show':'hidden'">
+        <div class="tip-GA">
+          <span> You haven't set up Google Authenticator 2FA token. For your account security, please use google authenticator to scan the QR code below.</span>
+        </div>
+        <div>
+          <span style="margin-right:20px;">
+            <img :src="qrCode">
+          </span>
+        </div>
+      </div>
+
+      <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleAddGA">Add GA</el-button>
 
     </el-form>
   </div>
@@ -72,18 +132,35 @@ export default {
         callback()
       }
     }
+    const validateGoogleCode = (rule, value, callback) => {
+      if (value.length < 6) {
+        callback(new Error('The Google Authenticator 2FA token can not be less than 6 digits'))
+      } else {
+        callback()
+      }
+    }
     return {
       loginForm: {
-        username: 'admin',
-        password: '111111'
+        username: '',
+        password: '',
+        googleCode: ''
       },
       loginRules: {
         username: [{ required: true, trigger: 'blur', validator: validateUsername }],
-        password: [{ required: true, trigger: 'blur', validator: validatePassword }]
+        password: [{ required: true, trigger: 'blur', validator: validatePassword }],
+        googleCode: [{ required: true, trigger: 'blur', validator: validateGoogleCode }]
+      },
+      GAForm: {
+        googleCode: ''
+      },
+      GARules: {
+        googleCode: [{ required: true, trigger: 'blur', validator: validateGoogleCode }]
       },
       loading: false,
       passwordType: 'password',
-      redirect: undefined
+      redirect: undefined,
+      showQrCode: false,
+      qrCode: ''
     }
   },
   watch: {
@@ -109,7 +186,29 @@ export default {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           this.loading = true
-          this.$store.dispatch('user/login', this.loginForm).then(() => {
+          this.$store.dispatch('user/login', this.loginForm).then(data => {
+            if (data.qrCode) {
+              this.qrCode = data.qrCode
+              this.showQrCode = true
+              this.loading = false
+              return true
+            }
+            this.$router.push({ path: this.redirect || '/' })
+            this.loading = false
+          }).catch(() => {
+            this.loading = false
+          })
+        } else {
+          console.log('error submit!!')
+          return false
+        }
+      })
+    },
+    handleAddGA() {
+      this.$refs.GAForm.validate(valid => {
+        if (valid) {
+          this.loading = true
+          this.$store.dispatch('user/addGA', this.GAForm).then(() => {
             this.$router.push({ path: this.redirect || '/' })
             this.loading = false
           }).catch(() => {
@@ -122,6 +221,7 @@ export default {
       })
     }
   }
+
 }
 </script>
 
@@ -232,6 +332,17 @@ $light_gray:#eee;
     color: $dark_gray;
     cursor: pointer;
     user-select: none;
+  }
+
+  .title-text {
+    margin-bottom: 6px;
+    color: #fff;
+  }
+  .tip-GA {
+    margin-bottom: 10px;
+    font-size: 15px;
+    word-break: break-all;
+    word-wrap: break-word;
   }
 }
 </style>

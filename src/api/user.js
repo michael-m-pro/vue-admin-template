@@ -2,7 +2,15 @@ import request from '@/utils/request'
 
 export function login(data) {
   return request({
-    url: '/vue-admin-template/user/login',
+    url: '/login',
+    method: 'post',
+    data
+  })
+}
+
+export function addGA(data) {
+  return request({
+    url: '/addGA',
     method: 'post',
     data
   })
@@ -10,7 +18,7 @@ export function login(data) {
 
 export function getInfo(token) {
   return request({
-    url: '/vue-admin-template/user/info',
+    url: '/getUserInfo',
     method: 'get',
     params: { token }
   })

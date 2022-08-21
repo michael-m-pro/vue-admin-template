@@ -1,4 +1,4 @@
-import { login, logout, getInfo } from '@/api/user'
+import { login, addGA, logout, getInfo } from '@/api/user'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import router, { resetRouter } from '@/router'
 
@@ -34,12 +34,25 @@ const mutations = {
 const actions = {
   // user login
   login({ commit }, userInfo) {
-    const { username, password } = userInfo
+    const { username, password, googleCode } = userInfo
     return new Promise((resolve, reject) => {
-      login({ username: username.trim(), password: password }).then(response => {
+      login({ userName: username.trim(), password: password, googleCode: googleCode }).then(response => {
         const { data } = response
+        console.log('login==', data)
         commit('SET_TOKEN', data.token)
         setToken(data.token)
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+
+  // user add GA
+  addGA({ commit }, GAInfo) {
+    const { googleCode } = GAInfo
+    return new Promise((resolve, reject) => {
+      addGA({ googleCode: googleCode }).then(response => {
         resolve()
       }).catch(error => {
         reject(error)
@@ -52,13 +65,18 @@ const actions = {
     return new Promise((resolve, reject) => {
       getInfo(state.token).then(response => {
         const { data } = response
-
+        console.log('==', data)
         if (!data) {
           return reject('Verification failed, please Login again.')
         }
 
-        const { name, avatar, roles } = data
-        commit('SET_NAME', name)
+        const { userName, avatar, userType } = data.admin
+        var roles = []
+        if (userType) {
+          roles = ['admin']
+        }
+
+        commit('SET_NAME', userName)
         commit('SET_AVATAR', avatar)
         commit('SET_ROLES', roles)
         resolve(data)

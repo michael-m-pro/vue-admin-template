@@ -11,6 +11,8 @@ const getDefaultState = () => {
   }
 }
 
+const defaultAvator = require('../../assets/img/default.png')
+
 const state = getDefaultState()
 
 const mutations = {
@@ -38,7 +40,7 @@ const actions = {
     return new Promise((resolve, reject) => {
       login({ userName: username.trim(), password: password, googleCode: googleCode }).then(response => {
         const { data } = response
-        console.log('login==', data)
+        // console.log('login==', data)
         commit('SET_TOKEN', data.token)
         setToken(data.token)
         resolve(data)
@@ -65,19 +67,23 @@ const actions = {
     return new Promise((resolve, reject) => {
       getInfo(state.token).then(response => {
         const { data } = response
-        console.log('==', data)
+        // console.log('==', data)
         if (!data) {
           return reject('Verification failed, please Login again.')
         }
 
-        const { userName, avatar, userType } = data.admin
+        const { userName, avatar, userType } = data
         var roles = []
         if (userType) {
           roles = ['admin']
         }
+        if (avatar == null || String(avatar).length === 0) {
+          commit('SET_AVATAR', defaultAvator)
+        } else {
+          commit('SET_AVATAR', avatar)
+        }
 
         commit('SET_NAME', userName)
-        commit('SET_AVATAR', avatar)
         commit('SET_ROLES', roles)
         resolve(data)
       }).catch(error => {

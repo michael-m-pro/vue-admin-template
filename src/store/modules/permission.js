@@ -1,5 +1,6 @@
 import { asyncRoutes, constantRoutes, exceptionRoutes } from '@/router'
 import { getRoutes } from '@/api/user'
+import { getToken } from '@/utils/auth'
 import Layout from '@/layout/index'
 
 /**
@@ -56,6 +57,7 @@ export function filterAsyncRoutes(routes, roles) {
 }
 
 const state = {
+  token: getToken,
   routes: [],
   addRoutes: []
 }

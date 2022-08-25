@@ -39,7 +39,8 @@ module.exports = {
     proxy: {
       '/dev-api': {
         // 代理地址，这里设置的地址会代替axios中设置的baseURL
-        target: 'http://192.168.0.100:8397',
+        // target: 'http://192.168.0.100:8397',
+        target: 'http://192.168.3.115:8397',
         // 如果接口跨域，需要进行这个参数配置
         changeOrigin: true,
         // pathRewrite方法重写url

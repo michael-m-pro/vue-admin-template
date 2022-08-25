@@ -18,7 +18,7 @@ export function addGA(data) {
 
 export function getInfo(token) {
   return request({
-    url: '/getUserInfo',
+    url: '/getInfo',
     method: 'get',
     params: { token }
   })
@@ -26,14 +26,15 @@ export function getInfo(token) {
 
 export function logout() {
   return request({
-    url: '/vue-admin-template/user/logout',
+    url: '/logout',
     method: 'post'
   })
 }
 
-export function getRoutes() {
+export function getRoutes(token) {
   return request({
-    url: '/vue-admin-template/user/getRoutes',
-    method: 'get'
+    url: '/getPermissions',
+    method: 'get',
+    params: { token }
   })
 }

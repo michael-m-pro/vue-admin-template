@@ -34,10 +34,15 @@ router.beforeEach(async(to, from, next) => {
         try {
           // get user info
           const data = await store.dispatch('user/getInfo')
-          console.log(data)
+          console.log('info=', data)
+          console.log('route=', constantRoutes)
           // next()
-          // const accessRoutes = await store.dispatch('permission/generateRoutes', roles)
-          const accessRoutes = data.permissions
+          var roles = []
+          if (data) {
+            roles = ['admin']
+          }
+          const accessRoutes = await store.dispatch('permission/generateRoutes', roles)
+          // const accessRoutes = data.permissions
           if (accessRoutes) {
             router.options.routes = constantRoutes.concat(accessRoutes)
             router.addRoutes(accessRoutes)

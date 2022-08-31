@@ -74,7 +74,8 @@ export default {
             { name: 'Customer Support', max: 20000 },
             { name: 'Development', max: 20000 },
             { name: 'Marketing', max: 20000 }
-          ]
+          ],
+          triggerEvent: true
         },
         legend: {
           left: 'center',

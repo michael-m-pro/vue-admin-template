@@ -38,3 +38,11 @@ export function getRoutes(token) {
     params: { token }
   })
 }
+
+export function getUsers(token) {
+  return request({
+    url: '/user/list',
+    method: 'get',
+    params: { token }
+  })
+}

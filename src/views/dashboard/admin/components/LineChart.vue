@@ -100,13 +100,6 @@ export default {
               color: '#FF005A',
               width: 2
             }
-            /* normal: {
-              color: '#FF005A',
-              lineStyle: {
-                color: '#FF005A',
-                width: 2
-              }
-            } */
           },
           smooth: true,
           type: 'line',
@@ -127,16 +120,6 @@ export default {
             areaStyle: {
               color: '#f3f8ff'
             }
-            /* normal: {
-              color: '#3888fa',
-              lineStyle: {
-                color: '#3888fa',
-                width: 2
-              },
-              areaStyle: {
-                color: '#f3f8ff'
-              }
-            } */
           },
           data: actualData,
           animationDuration: 2800,

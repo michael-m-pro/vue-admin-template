@@ -39,10 +39,10 @@ export function getRoutes(token) {
   })
 }
 
-export function getUsers(token) {
+export function getUsers(query) {
   return request({
     url: '/user/list',
     method: 'get',
-    params: { token }
+    params: query
   })
 }

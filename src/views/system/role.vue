@@ -3,13 +3,13 @@
 
     <div class="filter-container">
       <el-form ref="form" :model="queryForm" class="demo-form-inline" :inline="true">
-        <el-form-item label="User Name">
-          <el-input v-model="queryForm.roleName" placeholder="User name" />
+        <el-form-item label="">
+          <el-input v-model="queryForm.roleName" placeholder="Role Name" />
         </el-form-item>
 
         <el-form-item>
           <el-button :loading="loading" type="primary" @click="handleQuery">Query</el-button>
-          <el-button type="primary" style="align:right" @click="handleAddRole">New Role</el-button>
+          <el-button type="primary" style="align:right" @click="handleAddRole">Add Role</el-button>
         </el-form-item>
       </el-form>
     </div>

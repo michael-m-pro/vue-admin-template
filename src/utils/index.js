@@ -178,3 +178,16 @@ export function deepClone(source) {
   })
   return targetObj
 }
+
+/**
+ * 把值写入sessionStorage
+ * @param {*} key 缓存key
+ * @param {*} value 缓存值
+ */
+export function storage(key, value) {
+  if (value) {
+    sessionStorage.setItem(key, JSON.stringify(value))
+    return
+  }
+  return JSON.parse(sessionStorage.getItem(key))
+}

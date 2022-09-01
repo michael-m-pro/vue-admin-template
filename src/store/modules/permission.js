@@ -1,6 +1,7 @@
 import { asyncRoutes, constantRoutes, exceptionRoutes } from '@/router'
 import { getRoutes } from '@/api/user'
 import { getToken } from '@/utils/auth'
+import { storage } from '@/utils'
 import Layout from '@/layout/index'
 
 /**
@@ -18,6 +19,11 @@ function hasPermission(roles, route) {
 
 export function generateMenus(routes, data, is_children = false) {
   data.forEach(item => {
+    if (item.type === 2 && item.children && item.children.length > 0) {
+      const data = item.children.map(element => element.name)
+      storage(item.name, data)
+    }
+
     const menu = {
       path: item.path,
       component: item.component === 'Layout' ? Layout : resolve => require([`@/views/${item.component}`], resolve),

@@ -35,6 +35,32 @@ Vue.use(ElementUI, { locale })
 
 Vue.config.productionTip = false
 
+/**
+ * 判断操作按钮是否显示
+ * @param {*} action action
+ * @param {*} actions action集合
+ */
+
+Vue.prototype.showButton = function(action, actions) {
+  if (!actions || actions.length === 0) {
+    return false
+  }
+  return actions.indexOf(action) >= 0
+}
+
+/**
+ * 把值写入sessionStorage
+ * @param {*} key 缓存key
+ * @param {*} value 缓存值
+ */
+Vue.prototype.storage = function(key, value) {
+  if (value) {
+    sessionStorage.setItem(key, JSON.stringify(value))
+    return
+  }
+  return JSON.parse(sessionStorage.getItem(key))
+}
+
 new Vue({
   el: '#app',
   router,

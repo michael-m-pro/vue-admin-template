@@ -22,56 +22,64 @@
       </el-form>
     </div>
 
-    <el-table :data="userList" style="width: 100%;margin-top:30px;" border>
-      <el-table-column align="center" label="User Id" width="220">
+    <el-table :data="userList" style="width:100%;margin-top:30px;" border>
+      <el-table-column v-if="false" align="center" label="User Id" width="220">
         <template slot-scope="scope">
           {{ scope.row.id }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="User Name" width="220">
+      <el-table-column align="center" fixed label="User Name" width="220">
         <template slot-scope="scope">
           {{ scope.row.userName }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="Status" width="220">
-        <template slot-scope="{row}">
-          <el-tag :type="row.status | statusFilter">
-            {{ row.status | statusTextFilter }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column align="center" label="email">
+      <el-table-column align="center" label="email" width="220">
         <template slot-scope="scope">
           {{ scope.row.email }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="Create Time">
+      <el-table-column align="center" label="Status" width="220">
+        <template slot-scope="{row}">
+          <el-tag>
+            {{ row.status | statusTextFilter }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column align="center" label="memo" width="220">
+        <template slot-scope="scope">
+          {{ scope.row.memo }}
+        </template>
+      </el-table-column>
+      <el-table-column align="center" label="Create Time" width="220">
         <template slot-scope="scope">
           {{ scope.row.createTime }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="Operations">
+      <el-table-column align="center" fixed="right" width="500" label="Operations">
         <template slot-scope="scope">
+          <el-button v-show="showButton('View',actions)" type="primary" :disabled="scope.row.userType===0" size="small" @click="handleView(scope)">View</el-button>
           <el-button v-show="showButton('Edit',actions)" type="primary" :disabled="scope.row.userType===0" size="small" @click="handleEdit(scope)">Edit</el-button>
           <el-button v-show="showButton('Delete',actions)" type="danger" :disabled="scope.row.userType===0" size="small" @click="handleDelete(scope)">Delete</el-button>
+          <el-button v-show="showButton('ResetGA',actions)" type="danger" :disabled="scope.row.userType===0" size="small" @click="handleDelete(scope)">Reset GA</el-button>
+          <el-button v-show="showButton('ResetApiKey',actions)" type="danger" :disabled="scope.row.userType===0" size="small" @click="handleDelete(scope)">Reset ApiKey</el-button>
         </template>
       </el-table-column>
     </el-table>
 
-    <el-dialog :visible.sync="dialogVisible" :title="dialogType==='edit'?'Edit User':'New User'">
+    <el-dialog :visible.sync="dialogVisible" :title="dialogTitle">
       <el-form :model="user" label-width="100px" label-position="right">
         <el-input v-model="user.id" class="hidden" />
         <el-form-item label="Name">
-          <el-input v-model="user.userName" placeholder="Please enter user name" />
+          <el-input v-model="user.userName" :disabled="disableInput" placeholder="Please enter user name" />
         </el-form-item>
         <el-form-item label="Email">
-          <el-input v-model="user.email" placeholder="Please enter email" />
+          <el-input v-model="user.email" :disabled="disableInput" placeholder="Please enter email" />
         </el-form-item>
         <el-form-item label="Password">
-          <el-input v-model="user.password" placeholder="Please enter a new password" />
+          <el-input v-model="user.password" :disabled="disableInput" placeholder="Please enter a new password" />
         </el-form-item>
         <el-form-item label="Company">
-          <el-select v-model="user.companyId" placeholder="Please Select">
+          <el-select v-model="user.companyId" :disabled="disableInput" placeholder="Please Select">
             <el-option
               v-for="item in companies"
               :key="item.id"
@@ -81,7 +89,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="Department">
-          <el-select v-model="user.userType" placeholder="Please Select">
+          <el-select v-model="user.userType" :disabled="disableInput" placeholder="Please Select">
             <el-option
               v-for="item in departments"
               :key="item.id"
@@ -91,7 +99,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="User Type">
-          <el-select v-model="user.userType" placeholder="Please Select">
+          <el-select v-model="user.userType" :disabled="disableInput" placeholder="Please Select">
             <el-option
               v-for="item in userTypes"
               :key="item.key"
@@ -101,7 +109,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="Status">
-          <el-select v-model="user.status" placeholder="Please Select">
+          <el-select v-model="user.status" :disabled="disableInput" placeholder="Please Select">
             <el-option
               v-for="item in statusList"
               :key="item.key"
@@ -111,7 +119,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="Gender">
-          <el-select v-model="user.gender" placeholder="Please Select">
+          <el-select v-model="user.gender" :disabled="disableInput" placeholder="Please Select">
             <el-option
               v-for="item in genderList"
               :key="item.key"
@@ -121,11 +129,12 @@
           </el-select>
         </el-form-item>
         <el-form-item label="Phone">
-          <el-input v-model="user.phone" placeholder="Please enter phone number" />
+          <el-input v-model="user.phone" :disabled="disableInput" placeholder="Please enter phone number" />
         </el-form-item>
         <el-form-item label="Memo">
           <el-input
             v-model="user.memo"
+            :disabled="disableInput"
             :autosize="{ minRows: 2, maxRows: 4}"
             type="textarea"
             placeholder="User Description"
@@ -133,8 +142,8 @@
         </el-form-item>
       </el-form>
       <div style="text-align:right;">
-        <el-button type="danger" @click="dialogVisible=false">Cancel</el-button>
-        <el-button type="primary" @click="confirmUser">Confirm</el-button>
+        <el-button :class="{'hidden':disableInput}" type="danger" @click="dialogVisible=false">Cancel</el-button>
+        <el-button :class="{'hidden':disableInput}" type="primary" @click="confirmUser">Confirm</el-button>
       </div>
     </el-dialog>
   </div>
@@ -199,10 +208,13 @@ export default {
       ],
       userTypes: [
         { 'key': 1, 'label': 'Administrator' },
-        { 'key': 2, 'label': 'Merchant' }
+        { 'key': 2, 'label': 'Merchant' },
+        { 'key': 3, 'label': 'Sub-Merchant' }
       ],
       dialogVisible: false,
       dialogType: 'new',
+      dialogTitle: 'New User',
+      disableInput: true,
       checkStrictly: false,
       defaultProps: {
         children: 'children',
@@ -218,6 +230,7 @@ export default {
   },
   created() {
     this.actions = this.storage(this.$route.name)
+    console.log('actions', this.actions)
     this.getUsers()
   },
   methods: {
@@ -228,42 +241,33 @@ export default {
       this.loading = false
     },
     handleAdd() {
+      this.disableInput = false
       this.user = Object.assign({}, defaultRole)
       if (this.$refs.tree) {
         this.$refs.tree.setCheckedNodes([])
       }
       this.dialogType = 'new'
+      this.dialogTitle = 'New User'
       this.dialogVisible = true
     },
     handleQuery() {
       this.getUsers(this.queryForm)
     },
+    handleView(scope) {
+      console.log(JSON.stringify(this.genderList))
+      this.dialogTitle = 'View User'
+      this.disableInput = true
+      this.dialogVisible = true
+      this.checkStrictly = true
+      this.user = deepClone(scope.row)
+    },
     handleEdit(scope) {
+      this.dialogTitle = 'Edit User'
+      this.disableInput = false
       this.dialogType = 'edit'
       this.dialogVisible = true
       this.checkStrictly = true
       this.user = deepClone(scope.row)
-      this.$nextTick(() => {
-        return new Promise((resolve, reject) => {
-          /* getRoutesByRUI(this.user.id).then(response => {
-            const { data } = response
-
-            if (!data) {
-              return reject('Verification failed, please Login again.')
-            }
-            const routes = this.generateRoutes(data)
-            console.log('routes==', routes)
-            var attr = this.generateArr(routes)
-            console.log('attr==', attr)
-            this.$refs.tree.setCheckedNodes(attr)
-            // set checked state of a node not affects its father and child nodes
-            this.checkStrictly = false
-            resolve(data)
-          }).catch(error => {
-            reject(error)
-          }) */
-        })
-      })
     },
     handleDelete({ $index, row }) {
       this.$confirm('Confirm to remove the role?', 'Warning', {

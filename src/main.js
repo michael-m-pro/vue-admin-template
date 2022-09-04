@@ -45,6 +45,7 @@ Vue.prototype.showButton = function(action, actions) {
   if (!actions || actions.length === 0) {
     return false
   }
+  // console.log(action, actions.indexOf(action))
   return actions.indexOf(action) >= 0
 }
 

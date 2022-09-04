@@ -9,7 +9,7 @@
 
         <el-form-item>
           <el-button :loading="loading" type="primary" @click="handleQuery">Query</el-button>
-          <el-button type="primary" style="align:right" @click="handleAddRole">Add Role</el-button>
+          <el-button v-show="showButton('Add',actions)" type="primary" style="align:right" @click="handleAddRole">Add Role</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -39,21 +39,23 @@
       </el-table-column>
       <el-table-column align="center" label="Operations">
         <template slot-scope="scope">
-          <el-button type="primary" size="small" :disabled="!scope.row.status" @click="handleEdit(scope)">Edit</el-button>
-          <el-button type="danger" size="small" :disabled="!scope.row.status" @click="handleDelete(scope)">Delete</el-button>
+          <el-button v-show="showButton('View',actions)" type="primary" size="small" @click="handleView(scope)">View</el-button>
+          <el-button v-show="showButton('Edit',actions)" type="primary" size="small" @click="handleEdit(scope)">Edit</el-button>
+          <el-button v-show="showButton('Delete',actions)" type="danger" size="small" :disabled="!scope.row.status" @click="handleDelete(scope)">Delete</el-button>
         </template>
       </el-table-column>
     </el-table>
 
-    <el-dialog :visible.sync="dialogVisible" :title="dialogType==='edit'?'Edit Role':'New Role'">
+    <el-dialog :visible.sync="dialogVisible" :title="dialogTitle">
       <el-form :model="role" label-width="80px" label-position="left">
         <el-form-item label="Name">
-          <el-input v-model="role.roleName" placeholder="Role Name" />
+          <el-input v-model="role.roleName" :disabled="disableInput" placeholder="Role Name" />
         </el-form-item>
         <el-form-item label="Desc">
           <el-input
             v-model="role.memo"
             :autosize="{ minRows: 2, maxRows: 4}"
+            :disabled="disableInput"
             type="textarea"
             placeholder="Role Description"
           />
@@ -71,8 +73,8 @@
         </el-form-item>
       </el-form>
       <div style="text-align:right;">
-        <el-button type="danger" @click="dialogVisible=false">Cancel</el-button>
-        <el-button type="primary" @click="confirmRole">Confirm</el-button>
+        <el-button type="danger" :class="{'hidden':disableInput}" @click="dialogVisible=false">Cancel</el-button>
+        <el-button type="primary" :class="{'hidden':disableInput}" @click="confirmRole">Confirm</el-button>
       </div>
     </el-dialog>
   </div>
@@ -117,8 +119,11 @@ export default {
       role: Object.assign({}, defaultRole),
       routes: [],
       rolesList: [],
+      actions: [],
       dialogVisible: false,
       dialogType: 'new',
+      dialogTitle: 'New User',
+      disableInput: true,
       checkStrictly: false,
       defaultProps: {
         children: 'children',
@@ -136,6 +141,7 @@ export default {
     // Mock: get all routes and roles list from server
     this.getRoutes()
     this.getRoles()
+    this.actions = this.storage(this.$route.name)
   },
   methods: {
     async getRoutes() {
@@ -206,33 +212,30 @@ export default {
         this.$refs.tree.setCheckedNodes([])
       }
       this.dialogType = 'new'
+      this.disableInput = false
       this.dialogVisible = true
+      this.dialogTitle = 'Add Role'
     },
-    handleEdit(scope) {
-      this.dialogType = 'edit'
+    handleView(scope) {
+      this.dialogType = 'view'
+      this.dialogTitle = 'View Role'
+      this.disableInput = true
       this.dialogVisible = true
       this.checkStrictly = true
       this.role = deepClone(scope.row)
       this.$nextTick(() => {
-        return new Promise((resolve, reject) => {
-          getRoutesByRUI(this.role.id).then(response => {
-            const { data } = response
-
-            if (!data) {
-              return reject('Verification failed, please Login again.')
-            }
-            const routes = this.generateRoutes(data)
-            console.log('routes==', routes)
-            var attr = this.generateArr(routes)
-            console.log('attr==', attr)
-            this.$refs.tree.setCheckedNodes(attr)
-            // set checked state of a node not affects its father and child nodes
-            this.checkStrictly = false
-            resolve(data)
-          }).catch(error => {
-            reject(error)
-          })
-        })
+        this.getRoleRoutes()
+      })
+    },
+    handleEdit(scope) {
+      this.dialogType = 'edit'
+      this.dialogTitle = 'Edit Role'
+      this.disableInput = false
+      this.dialogVisible = true
+      this.checkStrictly = true
+      this.role = deepClone(scope.row)
+      this.$nextTick(() => {
+        this.getRoleRoutes()
       })
     },
     handleDelete({ $index, row }) {
@@ -261,15 +264,20 @@ export default {
           message: 'Delete canceled'
         })
       })
-      /* .then(async() => {
-          await deleteRole(row.key)
-          this.rolesList.splice($index, 1)
-          this.$message({
-            type: 'success',
-            message: 'Delete succed!'
-          })
+    },
+    getRoleRoutes() {
+      return new Promise((resolve) => {
+        getRoutesByRUI(this.role.id).then(response => {
+          const { data } = response
+          const routes = this.generateRoutes(data)
+          console.log('routes==', routes)
+          var attr = this.generateArr(routes)
+          this.$refs.tree.setCheckedNodes(attr)
+          // set checked state of a node not affects its father and child nodes
+          this.checkStrictly = false
+          resolve(data)
         })
-        .catch(err => { console.error(err) }) */
+      })
     },
     generateTree(routes, basePath = '/', checkedKeys) {
       const res = []

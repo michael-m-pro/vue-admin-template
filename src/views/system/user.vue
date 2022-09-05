@@ -55,7 +55,7 @@
           {{ scope.row.createTime }}
         </template>
       </el-table-column>
-      <el-table-column align="center" fixed="right" width="500" label="Operations">
+      <el-table-column align="center" fixed="right" width="560" label="Operations">
         <template slot-scope="scope">
           <el-button v-show="showButton('View',actions)" type="primary" :disabled="scope.row.userType===0" size="small" @click="handleView(scope)">View</el-button>
           <el-button v-show="showButton('Edit',actions)" type="primary" :disabled="scope.row.userType===0" size="small" @click="handleEdit(scope)">Edit</el-button>
@@ -76,24 +76,25 @@
           <el-input v-model="user.email" :disabled="disableInput" placeholder="Please enter email" />
         </el-form-item>
         <el-form-item label="Password">
-          <el-input v-model="user.password" :disabled="disableInput" placeholder="Please enter a new password" />
+          <el-input v-model="user.password" :disabled="disableInput" placeholder="If you want to change the password, please enter a new password, otherwise keep it blank" />
         </el-form-item>
         <el-form-item label="Company">
-          <el-select v-model="user.companyId" :disabled="disableInput" placeholder="Please Select">
+          {{ companies.key }}
+          <el-select v-model="user.companyId" :disabled="disableInput" placeholder="Please Select" @change="changeCompany">
             <el-option
-              v-for="item in companies"
-              :key="item.id"
-              :label="item.label"
-              :value="item.id"
+              v-for="(value, key) in companies"
+              :key="key"
+              :label="value"
+              :value="key"
             />
           </el-select>
         </el-form-item>
         <el-form-item label="Department">
-          <el-select v-model="user.userType" :disabled="disableInput" placeholder="Please Select">
+          <el-select v-model="user.deptId" :disabled="disableInput" placeholder="Please Select">
             <el-option
-              v-for="item in departments"
+              v-for="item in departmentSubs"
               :key="item.id"
-              :label="item.label"
+              :label="item.name"
               :value="item.id"
             />
           </el-select>
@@ -151,8 +152,7 @@
 
 <script>
 import { deepClone } from '@/utils'
-import { addRole, deleteRole, updateRole } from '@/api/role'
-import { getUsers } from '@/api/user'
+import { init, getUsers, addUser, updateUser, deleteUser } from '@/api/user'
 
 const defaultRole = {
   id: '',
@@ -162,8 +162,8 @@ const defaultRole = {
   gender: null,
   password: '',
   secret: '',
-  deptId: null,
-  companyId: null,
+  deptId: '',
+  companyId: '',
   email: '',
   phone: '',
   memo: ''
@@ -189,15 +189,15 @@ export default {
   data() {
     return {
       user: Object.assign({}, defaultRole),
-      routes: [],
       queryForm: {
         userName: '',
         userType: null
       },
       actions: [],
       userList: [],
-      departments: [],
-      companies: [],
+      departments: {},
+      departmentSubs: {},
+      companies: {},
       statusList: [
         { 'key': 0, 'label': 'Disable' },
         { 'key': 1, 'label': 'Normal' }
@@ -224,28 +224,32 @@ export default {
     }
   },
   computed: {
-    routesData() {
-      return this.routes
-    }
   },
   created() {
     this.actions = this.storage(this.$route.name)
-    console.log('actions', this.actions)
+    // console.log('actions', this.actions)
+    this.init()
     this.getUsers()
   },
   methods: {
+    async init() {
+      const res = await init()
+      this.companies = res.data.COMPANY_MAP
+      console.log(this.companies)
+      this.departments = res.data.DEPARTMENT_MAP
+    },
     async getUsers(query) {
       this.loading = true
       const res = await getUsers(query)
       this.userList = res.data.list
       this.loading = false
     },
+    changeCompany(val) {
+      this.departmentSubs = this.departments[val]
+    },
     handleAdd() {
       this.disableInput = false
       this.user = Object.assign({}, defaultRole)
-      if (this.$refs.tree) {
-        this.$refs.tree.setCheckedNodes([])
-      }
       this.dialogType = 'new'
       this.dialogTitle = 'New User'
       this.dialogVisible = true
@@ -268,63 +272,42 @@ export default {
       this.dialogVisible = true
       this.checkStrictly = true
       this.user = deepClone(scope.row)
+      this.departmentSubs = this.departments[this.user.companyId]
+      this.user.companyId = this.user.companyId + ''
     },
     handleDelete({ $index, row }) {
-      this.$confirm('Confirm to remove the role?', 'Warning', {
+      this.$confirm('Confirm to delete the user?', 'Warning', {
         confirmButtonText: 'Confirm',
         cancelButtonText: 'Cancel',
         type: 'warning'
       })
         .then(async() => {
-          await deleteRole(row.key)
+          await deleteUser(row.id)
           this.userList.splice($index, 1)
           this.$message({
             type: 'success',
             message: 'Delete succed!'
           })
+          this.getUsers()
         })
-        .catch(err => { console.error(err) })
     },
     async confirmUser() {
       const isEdit = this.dialogType === 'edit'
-
-      const checkedKeys = this.$refs.tree.getCheckedKeys()
-      console.log('checkedKeys==', checkedKeys)
-      // this.role.routes = this.generateTree(deepClone(this.serviceRoutes), '/', checkedKeys)
-      var menuIds = []
-      checkedKeys.forEach(element => {
-        element = element.replace('0-', '')
-        var mids = element.split('-')
-        menuIds = menuIds.concat(mids)
-      })
-      menuIds = [...new Set(menuIds.sort())]
-      this.role.checkedKeys = menuIds
       if (isEdit) {
-        await updateRole(this.role)
-        for (let index = 0; index < this.userList.length; index++) {
-          if (this.userList[index].levelPath === this.role.levelPath) {
-            this.userList.splice(index, 1, Object.assign({}, this.role))
-            break
-          }
-        }
+        await updateUser(this.user)
+        this.$message({
+          type: 'success',
+          message: 'The user update success !'
+        })
       } else {
-        const { data } = await addRole(this.role)
-        this.role.id = data.id
-        this.userList.push(this.role)
+        await addUser(this.user)
+        this.$message({
+          type: 'success',
+          message: 'The user add success !'
+        })
       }
-
-      const { memo, id, roleName } = this.role
       this.dialogVisible = false
-      this.$notify({
-        title: 'Success',
-        dangerouslyUseHTMLString: true,
-        message: `
-            <div>Role Key: ${id}</div>
-            <div>Role Name: ${roleName}</div>
-            <div>Description: ${memo}</div>
-          `,
-        type: 'success'
-      })
+      this.getUsers()
     }
   }
 }

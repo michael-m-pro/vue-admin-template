@@ -239,7 +239,7 @@ export default {
       })
     },
     handleDelete({ $index, row }) {
-      this.$confirm('Confirm to remove the role?', 'Warning', {
+      this.$confirm('Confirm to delete the role?', 'Warning', {
         confirmButtonText: 'Confirm',
         cancelButtonText: 'Cancel',
         type: 'warning'
@@ -300,7 +300,6 @@ export default {
       const isEdit = this.dialogType === 'edit'
 
       const checkedKeys = this.$refs.tree.getCheckedKeys()
-      console.log('checkedKeys==', checkedKeys)
       // this.role.routes = this.generateTree(deepClone(this.serviceRoutes), '/', checkedKeys)
       var menuIds = []
       checkedKeys.forEach(element => {

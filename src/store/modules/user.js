@@ -1,4 +1,4 @@
-import { login, addGA, logout, getInfo } from '@/api/user'
+import { login, addGA, logout, getInfo, init, addUser, updateUser, deleteUser } from '@/api/user'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import router, { resetRouter } from '@/router'
 
@@ -51,7 +51,7 @@ const actions = {
   },
 
   // user add GA
-  addGA({ commit }, GAInfo) {
+  addGA(GAInfo) {
     const { googleCode } = GAInfo
     return new Promise((resolve, reject) => {
       addGA({ googleCode: googleCode }).then(response => {
@@ -61,7 +61,44 @@ const actions = {
       })
     })
   },
+  // init
+  init() {
+    return new Promise((resolve, reject) => {
+      init().then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
 
+  addUser(data) {
+    return new Promise((resolve, reject) => {
+      addUser(data).then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  updateUser(data) {
+    return new Promise((resolve, reject) => {
+      updateUser(data).then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  deleteUser(data) {
+    return new Promise((resolve, reject) => {
+      deleteUser(data).then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
   // get user info
   getInfo({ commit, state }) {
     return new Promise((resolve, reject) => {

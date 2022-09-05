@@ -1,7 +1,7 @@
 import { addOrganization, getOrganizations } from '@/api/organization'
 
 const actions = {
-// user add GA
+  // add organization
   addOrganization(data) {
     return new Promise((resolve, reject) => {
       addOrganization(data).then(response => {

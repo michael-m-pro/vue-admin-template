@@ -104,7 +104,7 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item v-if="organizationType===1" label="Superior name">
+        <el-form-item v-if="organizationType==1 || organization.level==1" label="Superior name">
           <el-select v-model="organization.parentId" :disabled="disableInput" placeholder="Please Select">
             <el-option
               v-for="(value, key) in companyMap"
@@ -114,7 +114,7 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item v-if="organizationType == 0" label="Registration No">
+        <el-form-item v-if="organizationType == 0 || organization.level == 0" label="Registration No">
           <el-input v-model="organization.registrationNo" :disabled="disableInput" placeholder="Please enter the Registration number" />
         </el-form-item>
         <el-form-item label="Status">
@@ -255,7 +255,9 @@ export default {
       this.dialogType = 'edit'
       this.dialogVisible = true
       this.checkStrictly = true
+      this.organizationType = null
       this.organization = deepClone(scope.row)
+      this.organization.parentId = this.organization.parentId + ''
     },
     handleDelete({ $index, row }) {
       this.$confirm('Confirm to remove the organization?', 'Warning', {

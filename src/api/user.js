@@ -31,6 +31,14 @@ export function logout() {
   })
 }
 
+export function init(token) {
+  return request({
+    url: '/user/init',
+    method: 'get',
+    params: { token }
+  })
+}
+
 export function getRoutes(token) {
   return request({
     url: '/getPermissions',
@@ -44,5 +52,28 @@ export function getUsers(query) {
     url: '/user/list',
     method: 'get',
     params: query
+  })
+}
+
+export function addUser(data) {
+  return request({
+    url: '/user/insert',
+    method: 'post',
+    data
+  })
+}
+export function updateUser(data) {
+  return request({
+    url: '/user/update',
+    method: 'post',
+    data
+  })
+}
+// 禁用
+export function deleteUser(data) {
+  return request({
+    url: '/user/delete',
+    method: 'post',
+    data
   })
 }

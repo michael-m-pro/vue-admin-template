@@ -3,6 +3,8 @@
 
     <div class="filter-container">
       <el-form ref="form" :model="queryForm" class="demo-form-inline" :inline="true">
+        <el-input v-model="queryForm.pageNum" class="hidden" />
+        <el-input v-model="queryForm.pageSize" class="hidden" />
         <el-form-item label="">
           <el-input v-model="queryForm.roleName" placeholder="Role Name" />
         </el-form-item>
@@ -45,6 +47,7 @@
         </template>
       </el-table-column>
     </el-table>
+    <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="handleQuery" />
 
     <el-dialog :visible.sync="dialogVisible" :title="dialogTitle">
       <el-form :model="role" label-width="80px" label-position="left">
@@ -81,6 +84,7 @@
 </template>
 
 <script>
+import Pagination from '@/components/Pagination'
 import path from 'path'
 import { deepClone } from '@/utils'
 import { getRoutes, getRoles, getRoutesByRUI, addRole, deleteRole, updateRole } from '@/api/role'
@@ -95,6 +99,7 @@ const defaultRole = {
 }
 
 export default {
+  components: { Pagination },
   filters: {
     statusFilter(status) {
       const statusMap = {
@@ -114,7 +119,9 @@ export default {
   data() {
     return {
       queryForm: {
-        roleName: ''
+        roleName: '',
+        pageNum: '',
+        pageSize: ''
       },
       role: Object.assign({}, defaultRole),
       routes: [],
@@ -129,7 +136,16 @@ export default {
         children: 'children',
         label: 'title'
       },
-      loading: false
+      loading: false,
+      total: 0,
+      listQuery: {
+        page: 1,
+        limit: 10,
+        importance: undefined,
+        title: undefined,
+        type: undefined,
+        sort: '+id'
+      }
     }
   },
   computed: {
@@ -145,15 +161,16 @@ export default {
   },
   methods: {
     async getRoutes() {
-      const res = await getRoutes()
-      this.serviceRoutes = res.data
-      this.routes = this.generateRoutes(res.data)
+      const { data } = await getRoutes()
+      this.serviceRoutes = data
+      this.routes = this.generateRoutes(data)
     },
     async getRoles(query) {
       this.loading = true
-      const res = await getRoles(query)
+      const { data } = await getRoles(query)
       this.loading = false
-      this.rolesList = res.data.list
+      this.rolesList = data.list
+      this.total = data.page.total
     },
 
     // Reshape the routes structure so that it looks the same as the sidebar
@@ -203,7 +220,8 @@ export default {
       return data
     },
     handleQuery() {
-      console.log('query', this.queryForm)
+      this.queryForm.pageNum = this.listQuery.page
+      this.queryForm.pageSize = this.listQuery.limit
       this.getRoles(this.queryForm)
     },
     handleAddRole() {
@@ -335,6 +353,7 @@ export default {
           `,
         type: 'success'
       })
+      this.getRoles(this.queryForm)
     },
     // reference: src/view/layout/components/Sidebar/SidebarItem.vue
     onlyOneShowingChild(children = [], parent) {

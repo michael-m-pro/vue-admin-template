@@ -15,6 +15,34 @@ export function addGA(data) {
     data
   })
 }
+export function getApiKey(data) {
+  return request({
+    url: '/user/getApiKey',
+    method: 'get',
+    params: data
+  })
+}
+export function createApiKey(data) {
+  return request({
+    url: '/user/createApiKey',
+    method: 'post',
+    data
+  })
+}
+export function updateApiKey(data) {
+  return request({
+    url: '/user/updateApiKey',
+    method: 'post',
+    data
+  })
+}
+export function resetApiKey(data) {
+  return request({
+    url: '/user/resetApiKey',
+    method: 'post',
+    data
+  })
+}
 
 export function getInfo(token) {
   return request({
@@ -73,6 +101,14 @@ export function updateUser(data) {
 export function deleteUser(data) {
   return request({
     url: '/user/delete',
+    method: 'post',
+    data
+  })
+}
+// 禁用
+export function resetGA(data) {
+  return request({
+    url: '/user/resetGA',
     method: 'post',
     data
   })

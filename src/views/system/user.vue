@@ -1,12 +1,14 @@
 <template>
   <div class="app-container">
-    <div class="filter-container">
+    <div v-if="userType<2" class="filter-container">
       <el-form ref="form" :model="queryForm" class="demo-form-inline" :inline="true">
+        <el-input v-model="queryForm.pageNum" class="hidden" />
+        <el-input v-model="queryForm.pageSize" class="hidden" />
         <el-form-item label="">
           <el-input v-model="queryForm.userName" placeholder="User Name" />
         </el-form-item>
         <el-form-item label="">
-          <el-select v-model="queryForm.userType" placeholder="Select">
+          <el-select v-model="queryForm.userType" clearable placeholder="Select">
             <el-option
               v-for="item in userTypes"
               :key="item.key"
@@ -40,9 +42,19 @@
       </el-table-column>
       <el-table-column align="center" label="Status" width="220">
         <template slot-scope="{row}">
-          <el-tag>
+          <el-tag :type="row.status | statusFilter">
             {{ row.status | statusTextFilter }}
           </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column align="center" label="Type" width="220">
+        <template slot-scope="{row}">
+          {{ row.userType | userTypeFilter }}
+        </template>
+      </el-table-column>
+      <el-table-column align="center" label="Role" width="220">
+        <template slot-scope="{row}">
+          {{ roles[row.roleId] }}
         </template>
       </el-table-column>
       <el-table-column align="center" label="memo" width="220">
@@ -57,14 +69,15 @@
       </el-table-column>
       <el-table-column align="center" fixed="right" width="560" label="Operations">
         <template slot-scope="scope">
-          <el-button v-show="showButton('View',actions)" type="primary" :disabled="scope.row.userType===0" size="small" @click="handleView(scope)">View</el-button>
+          <el-button v-show="showButton('View',actions)" type="primary" size="small" @click="handleView(scope)">View</el-button>
           <el-button v-show="showButton('Edit',actions)" type="primary" :disabled="scope.row.userType===0" size="small" @click="handleEdit(scope)">Edit</el-button>
           <el-button v-show="showButton('Delete',actions)" type="danger" :disabled="scope.row.userType===0" size="small" @click="handleDelete(scope)">Delete</el-button>
-          <el-button v-show="showButton('ResetGA',actions)" type="danger" :disabled="scope.row.userType===0" size="small" @click="handleDelete(scope)">Reset GA</el-button>
-          <el-button v-show="showButton('ResetApiKey',actions)" type="danger" :disabled="scope.row.userType===0" size="small" @click="handleDelete(scope)">Reset ApiKey</el-button>
+          <el-button v-show="showButton('ResetGA',actions)" type="danger" :disabled="scope.row.userType===0" size="small" @click="resetGA(scope)">Reset GA</el-button>
+          <el-button v-if="scope.row.userType>=2" v-show="showButton('CreateApiKey',actions)" type="danger" :disabled="scope.row.userType===0" size="small" @click="handleApiKey(scope)">Api Key</el-button>
         </template>
       </el-table-column>
     </el-table>
+    <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="handleQuery" />
 
     <el-dialog :visible.sync="dialogVisible" :title="dialogTitle">
       <el-form :model="user" label-width="100px" label-position="right">
@@ -80,7 +93,7 @@
         </el-form-item>
         <el-form-item label="Company">
           {{ companies.key }}
-          <el-select v-model="user.companyId" :disabled="disableInput" placeholder="Please Select" @change="changeCompany">
+          <el-select v-model="user.companyId" clearable :disabled="disableInput" placeholder="Please Select" @change="changeCompany">
             <el-option
               v-for="(value, key) in companies"
               :key="key"
@@ -90,7 +103,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="Department">
-          <el-select v-model="user.deptId" :disabled="disableInput" placeholder="Please Select">
+          <el-select v-model="user.deptId" clearable :disabled="disableInput" placeholder="Please Select">
             <el-option
               v-for="item in departmentSubs"
               :key="item.id"
@@ -99,8 +112,18 @@
             />
           </el-select>
         </el-form-item>
+        <el-form-item label="User Role">
+          <el-select v-model="user.roleId" clearable :disabled="disableInput" placeholder="Please Select">
+            <el-option
+              v-for="(val,key) in roles"
+              :key="key"
+              :label="val"
+              :value="key"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="User Type">
-          <el-select v-model="user.userType" :disabled="disableInput" placeholder="Please Select">
+          <el-select v-model="user.userType" clearable :disabled="disableInput" placeholder="Please Select">
             <el-option
               v-for="item in userTypes"
               :key="item.key"
@@ -110,7 +133,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="Status">
-          <el-select v-model="user.status" :disabled="disableInput" placeholder="Please Select">
+          <el-select v-model="user.status" clearable :disabled="disableInput" placeholder="Please Select">
             <el-option
               v-for="item in statusList"
               :key="item.key"
@@ -119,8 +142,8 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="Gender">
-          <el-select v-model="user.gender" :disabled="disableInput" placeholder="Please Select">
+        <el-form-item v-if="user.userType<2" label="Gender">
+          <el-select v-model="user.gender" clearable :disabled="disableInput" placeholder="Please Select">
             <el-option
               v-for="item in genderList"
               :key="item.key"
@@ -147,12 +170,60 @@
         <el-button :class="{'hidden':disableInput}" type="primary" @click="confirmUser">Confirm</el-button>
       </div>
     </el-dialog>
+
+    <el-dialog :visible.sync="apiDialogVisible" title="Api Key">
+      <el-form :model="user" label-width="200px" label-position="right">
+        <el-input v-model="merchantApi.id" class="hidden" />
+        <el-input v-model="merchantApi.uid" class="hidden" />
+        <el-form-item v-if="merchantApi.id" label="Key">
+          <el-tag type="success">
+            {{ merchantApi.apiKey }}
+          </el-tag>
+          <el-button v-show="showButton('ResetApiKey',actions)" type="primary" style="margin-left:20px" @click="resetApiKey">Reset ApiKey</el-button>
+        </el-form-item>
+        <el-form-item label="Receive">
+          OFF <el-switch
+            v-model="merchantApi.enableReceive"
+            :active-value="1"
+            :inactive-value="0"
+          /> ON
+        </el-form-item>
+        <el-form-item>
+          <el-tag type="info">With this option turned on, you can use the api interface to collect payments from your customers</el-tag>
+        </el-form-item>
+        <el-form-item label="Payout">
+          OFF <el-switch
+            v-model="merchantApi.enablePayment"
+            :active-value="1"
+            :inactive-value="0"
+          /> ON
+        </el-form-item>
+        <el-form-item>
+          <el-tag type="info">With this option turned on, you can use the api interface to make payments to your customers</el-tag>
+        </el-form-item>
+        <el-form-item label="IP Address Whitelist">
+          <el-input
+            v-model="merchantApi.acessIp"
+            :autosize="{ minRows: 2, maxRows: 4}"
+            type="textarea"
+            placeholder="Limit account access by IP address. You can provide one or more IP addresses.Example: 192.168.0.1 or 192.168.0.1,192.168.0.2"
+          />
+        </el-form-item>
+
+      </el-form>
+      <div style="text-align:right;">
+        <el-button type="danger" @click="apiDialogVisible=false">Cancel</el-button>
+        <el-button v-if="!merchantApi.id" v-show="showButton('CreateApiKey',actions)" type="primary" @click="confirmApiKey">Create ApiKey</el-button>
+        <el-button v-if="merchantApi.id" v-show="showButton('UpdateApiKey',actions)" type="primary" @click="updateApiKey">Update ApiKey</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
+import Pagination from '@/components/Pagination'
 import { deepClone } from '@/utils'
-import { init, getUsers, addUser, updateUser, deleteUser } from '@/api/user'
+import { init, getUsers, addUser, updateUser, deleteUser, resetGA, createApiKey, getApiKey, resetApiKey, updateApiKey } from '@/api/user'
 
 const defaultRole = {
   id: '',
@@ -164,12 +235,25 @@ const defaultRole = {
   secret: '',
   deptId: '',
   companyId: '',
+  roleId: '',
   email: '',
   phone: '',
   memo: ''
 }
 
+const defaultMerchantApi = {
+  id: null,
+  companyId: null,
+  uid: null,
+  apiKey: '',
+  status: '',
+  enableReceive: 0,
+  enablePayment: 0,
+  allowIp: ''
+}
+
 export default {
+  components: { Pagination },
   filters: {
     statusFilter(status) {
       const statusMap = {
@@ -184,20 +268,33 @@ export default {
         0: 'Disable'
       }
       return textMap[status]
+    },
+    userTypeFilter(status) {
+      const textMap = {
+        0: 'Administrator',
+        1: 'Administrator',
+        2: 'Merchant'
+      }
+      return textMap[status]
     }
   },
   data() {
     return {
       user: Object.assign({}, defaultRole),
+      merchantApi: Object.assign({}, defaultMerchantApi),
       queryForm: {
         userName: '',
-        userType: null
+        userType: null,
+        pageNum: '',
+        pageSize: ''
       },
       actions: [],
       userList: [],
+      userType: null,
       departments: {},
       departmentSubs: {},
       companies: {},
+      roles: {},
       statusList: [
         { 'key': 0, 'label': 'Disable' },
         { 'key': 1, 'label': 'Normal' }
@@ -208,10 +305,11 @@ export default {
       ],
       userTypes: [
         { 'key': 1, 'label': 'Administrator' },
-        { 'key': 2, 'label': 'Merchant' },
-        { 'key': 3, 'label': 'Sub-Merchant' }
+        { 'key': 2, 'label': 'Merchant' }
+        // { 'key': 3, 'label': 'Sub-Merchant' }
       ],
       dialogVisible: false,
+      apiDialogVisible: false,
       dialogType: 'new',
       dialogTitle: 'New User',
       disableInput: true,
@@ -220,7 +318,16 @@ export default {
         children: 'children',
         label: 'title'
       },
-      loading: false
+      loading: false,
+      total: 0,
+      listQuery: {
+        page: 1,
+        limit: 10,
+        importance: undefined,
+        title: undefined,
+        type: undefined,
+        sort: '+id'
+      }
     }
   },
   computed: {
@@ -233,15 +340,17 @@ export default {
   },
   methods: {
     async init() {
-      const res = await init()
-      this.companies = res.data.COMPANY_MAP
-      console.log(this.companies)
-      this.departments = res.data.DEPARTMENT_MAP
+      const { data } = await init()
+      this.companies = data.COMPANY_MAP
+      this.departments = data.DEPARTMENT_MAP
+      this.roles = data.ROLE_MAP
+      this.userType = data.userType
     },
     async getUsers(query) {
       this.loading = true
-      const res = await getUsers(query)
-      this.userList = res.data.list
+      const { data } = await getUsers(query)
+      this.userList = data.list
+      this.total = data.page.total
       this.loading = false
     },
     changeCompany(val) {
@@ -255,6 +364,8 @@ export default {
       this.dialogVisible = true
     },
     handleQuery() {
+      this.queryForm.pageNum = this.listQuery.page
+      this.queryForm.pageSize = this.listQuery.limit
       this.getUsers(this.queryForm)
     },
     handleView(scope) {
@@ -264,6 +375,10 @@ export default {
       this.dialogVisible = true
       this.checkStrictly = true
       this.user = deepClone(scope.row)
+      this.user.companyId = this.user.companyId + ''
+      this.departmentSubs = this.departments[this.user.companyId]
+      this.user.roleId = this.user.roleId + ''
+      this.user.password = ''
     },
     handleEdit(scope) {
       this.dialogTitle = 'Edit User'
@@ -274,21 +389,45 @@ export default {
       this.user = deepClone(scope.row)
       this.departmentSubs = this.departments[this.user.companyId]
       this.user.companyId = this.user.companyId + ''
+      this.user.roleId = this.user.roleId + ''
+      this.user.password = ''
     },
     handleDelete({ $index, row }) {
+      this.user.id = row.id
       this.$confirm('Confirm to delete the user?', 'Warning', {
         confirmButtonText: 'Confirm',
         cancelButtonText: 'Cancel',
         type: 'warning'
       })
         .then(async() => {
-          await deleteUser(row.id)
-          this.userList.splice($index, 1)
+          await deleteUser(this.user)
           this.$message({
             type: 'success',
             message: 'Delete succed!'
           })
-          this.getUsers()
+          this.getUsers(this.queryForm)
+        })
+    },
+    handleApiKey(scope) {
+      this.user = deepClone(scope.row)
+      this.merchantApi.uid = this.user.id
+      this.merchantApi.companyId = this.user.companyId
+      this.apiDialogVisible = true
+      this.getApiKey(this.merchantApi)
+    },
+    resetGA(scope) {
+      this.user = deepClone(scope.row)
+      this.$confirm('After reset, you can bind a new GA! Confirm to reset the GA?', 'Warning', {
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
+        type: 'warning'
+      })
+        .then(async() => {
+          await resetGA(this.user)
+          this.$message({
+            type: 'success',
+            message: 'The GA reseted successfully !'
+          })
         })
     },
     async confirmUser() {
@@ -297,17 +436,60 @@ export default {
         await updateUser(this.user)
         this.$message({
           type: 'success',
-          message: 'The user update success !'
+          message: 'User updated successfully !'
         })
       } else {
         await addUser(this.user)
         this.$message({
           type: 'success',
-          message: 'The user add success !'
+          message: 'User added successfully !'
         })
       }
       this.dialogVisible = false
-      this.getUsers()
+      this.getUsers(this.queryForm)
+    },
+    async confirmApiKey() {
+      this.merchantApi.uid = this.user.id
+      this.merchantApi.companyId = this.user.companyId
+      console.log(this.merchantApi)
+      await createApiKey(this.merchantApi)
+      this.$message({
+        type: 'success',
+        message: 'Api Key created successfully !'
+      })
+      this.apiDialogVisible = false
+    },
+    async updateApiKey() {
+      await updateApiKey(this.merchantApi)
+      this.$message({
+        type: 'success',
+        message: 'Api Key up successfully !'
+      })
+      this.getApiKey(this.merchantApi)
+    },
+    resetApiKey() {
+      this.$confirm('This operation will reset your api key,Confirm to reset it ?', 'Warning', {
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
+        type: 'warning'
+      })
+        .then(async() => {
+          await resetApiKey(this.merchantApi)
+          this.$message({
+            type: 'success',
+            message: 'Api Key reseted successfully !'
+          })
+          this.getApiKey(this.merchantApi)
+        })
+    },
+    async getApiKey(query) {
+      const { uid, companyId } = query
+      const { data } = await getApiKey({ 'uid': uid, 'companyId': companyId })
+      if (data) {
+        this.merchantApi = data
+      } else {
+        this.merchantApi = defaultMerchantApi
+      }
     }
   }
 }

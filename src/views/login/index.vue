@@ -208,7 +208,8 @@ export default {
       this.$refs.GAForm.validate(valid => {
         if (valid) {
           this.loading = true
-          this.$store.dispatch('user/addGA', this.GAForm).then(() => {
+          this.$store.dispatch('user/addGA', this.GAForm).then((response) => {
+            console.log('========', response)
             this.$router.push({ path: this.redirect || '/' })
             this.loading = false
           }).catch(() => {

@@ -40,13 +40,28 @@ Vue.config.productionTip = false
  * @param {*} action action
  * @param {*} actions action集合
  */
-
 Vue.prototype.showButton = function(action, actions) {
   if (!actions || actions.length === 0) {
     return false
   }
   // console.log(action, actions.indexOf(action))
   return actions.indexOf(action) >= 0
+}
+
+/**
+ * 判断操作按钮是否显示
+ * @param {*} value value
+ * @param {*} clazz 类型
+ */
+Vue.prototype.format = function(value, clazz) {
+  switch (clazz) {
+    case String:
+      value = value + ''
+      break
+    default:
+  }
+  console.log('val', value)
+  return value
 }
 
 /**

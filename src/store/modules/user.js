@@ -1,6 +1,7 @@
-import { login, addGA, logout, getInfo, init, addUser, updateUser, deleteUser } from '@/api/user'
+import { login, addGA, logout, getInfo, init, addUser, updateUser, deleteUser, getApiKey, createApiKey, updateApiKey, resetApiKey } from '@/api/user'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import router, { resetRouter } from '@/router'
+import { storage } from '@/utils'
 
 const getDefaultState = () => {
   return {
@@ -51,12 +52,21 @@ const actions = {
   },
 
   // user add GA
-  addGA(GAInfo) {
+  addGA({ commit }, GAInfo) {
+    const token = getToken()
+    if (!token) {
+      setToken(storage('token'))
+    }
     const { googleCode } = GAInfo
     return new Promise((resolve, reject) => {
       addGA({ googleCode: googleCode }).then(response => {
+        const { data } = response
+        commit('SET_TOKEN', data.token)
+        setToken(data.token)
         resolve()
       }).catch(error => {
+        storage('token', token)
+        removeToken()
         reject(error)
       })
     })
@@ -93,6 +103,51 @@ const actions = {
   deleteUser(data) {
     return new Promise((resolve, reject) => {
       deleteUser(data).then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  resetGA(data) {
+    return new Promise((resolve, reject) => {
+      deleteUser(data).then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  getApiKey(data) {
+    return new Promise((resolve, reject) => {
+      getApiKey(data).then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  createApiKey(data) {
+    return new Promise((resolve, reject) => {
+      createApiKey(data).then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  updateApiKey(data) {
+    return new Promise((resolve, reject) => {
+      updateApiKey(data).then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  resetApiKey(data) {
+    return new Promise((resolve, reject) => {
+      resetApiKey(data).then(response => {
         resolve(response)
       }).catch(error => {
         reject(error)

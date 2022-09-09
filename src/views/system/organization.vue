@@ -2,6 +2,8 @@
   <div class="app-container">
     <div class="filter-container">
       <el-form ref="form" :model="queryForm" class="demo-form-inline" :inline="true">
+        <el-input v-model="queryForm.pageNum" class="hidden" />
+        <el-input v-model="queryForm.pageSize" class="hidden" />
         <el-form-item label="">
           <el-input v-model="queryForm.name" style="width:230px" placeholder="Company/Department Name" />
         </el-form-item>
@@ -78,6 +80,7 @@
         </template>
       </el-table-column>
     </el-table>
+    <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="handleQuery" />
 
     <el-dialog :visible.sync="dialogVisible" :title="dialogTitle">
       <el-form :model="organization" label-width="120px" label-position="right">
@@ -140,6 +143,7 @@
 </template>
 
 <script>
+import Pagination from '@/components/Pagination'
 import { deepClone } from '@/utils'
 import { addOrganization, deleteOrganization, getOrganizations, updateOrganization } from '@/api/organization'
 
@@ -159,6 +163,7 @@ const defaultRole = {
 }
 
 export default {
+  components: { Pagination },
   filters: {
     organizationTypeFilter(type) {
       const statusMap = {
@@ -181,7 +186,9 @@ export default {
       routes: [],
       queryForm: {
         name: '',
-        level: null
+        level: null,
+        pageNum: '',
+        pageSize: ''
       },
       actions: [],
       organizationList: [],
@@ -205,7 +212,16 @@ export default {
         children: 'children',
         label: 'title'
       },
-      loading: false
+      loading: false,
+      total: 0,
+      listQuery: {
+        page: 1,
+        limit: 10,
+        importance: undefined,
+        title: undefined,
+        type: undefined,
+        sort: '+id'
+      }
     }
   },
   computed: {
@@ -220,9 +236,10 @@ export default {
   methods: {
     async getOrganizations(query) {
       this.loading = true
-      const res = await getOrganizations(query)
-      this.organizationList = res.data.list
-      this.companyMap = res.data.companyMap
+      const { data } = await getOrganizations(query)
+      this.organizationList = data.list
+      this.companyMap = data.companyMap
+      this.total = data.page.total
       this.loading = false
     },
     changeOrganizationType(val) {
@@ -231,14 +248,13 @@ export default {
     handleAdd() {
       this.disableInput = false
       this.organization = Object.assign({}, defaultRole)
-      if (this.$refs.tree) {
-        this.$refs.tree.setCheckedNodes([])
-      }
       this.dialogType = 'new'
       this.dialogTitle = 'New Company/Department'
       this.dialogVisible = true
     },
     handleQuery() {
+      this.queryForm.pageNum = this.listQuery.page
+      this.queryForm.pageSize = this.listQuery.limit
       this.getOrganizations(this.queryForm)
     },
     handleView(scope) {

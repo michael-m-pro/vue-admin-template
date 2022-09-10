@@ -5,7 +5,7 @@
         <el-input v-model="queryForm.pageNum" class="hidden" />
         <el-input v-model="queryForm.pageSize" class="hidden" />
         <el-form-item label="">
-          <el-input v-model="queryForm.code" style="width:230px" placeholder="Code" />
+          <el-input v-model="queryForm.code" style="width:300px" placeholder="Code" />
         </el-form-item>
         <el-form-item label="">
           <el-input v-model="queryForm.name" style="width:230px" placeholder="Name" />
@@ -23,12 +23,7 @@
           {{ scope.row.id }}
         </template>
       </el-table-column>
-      <el-table-column v-if="false" align="center" fixed label="Superior Code" width="200">
-        <template slot-scope="scope">
-          {{ scope.row.parentId }}
-        </template>
-      </el-table-column>
-      <el-table-column align="center" label="Code" width="200">
+      <el-table-column align="center" label="Code" fixed="left" width="300">
         <template slot-scope="scope">
           {{ scope.row.code == null?'┗':scope.row.code }}
         </template>
@@ -59,7 +54,7 @@
         <template slot-scope="scope">
           <el-button v-show="showButton('View',actions)" type="primary" size="small" @click="handleView(scope)">View</el-button>
           <el-button v-show="showButton('Edit',actions)" type="primary" size="small" @click="handleEdit(scope)">Edit</el-button>
-          <el-button v-show="showButton('Add',actions)" v-if="scope.row.parentId==scope.row.id" type="primary" size="small" @click="handleAddSub(scope)">Add Subset</el-button>
+          <el-button v-show="showButton('Add',actions)" v-if="scope.row.parentId==scope.row.id" type="success" size="small" @click="handleAddSub(scope)">Add Subset</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -200,11 +195,11 @@ export default {
   },
   methods: {
     async getDictionaries(query) {
-      this.loading = true
+      // this.loading = true
       const { data } = await getDictionaries(query)
       this.dictionaryList = data.list
       this.total = data.page.total
-      this.loading = false
+      // this.loading = false
     },
     handleAdd() {
       this.disableInput = false
@@ -263,7 +258,7 @@ export default {
           message: 'The parameter add success !'
         })
       }
-      this.getDictionaries()
+      this.getDictionaries(this.queryForm)
     }
   }
 }

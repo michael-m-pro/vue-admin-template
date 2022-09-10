@@ -5,47 +5,54 @@
         <el-input v-model="queryForm.pageNum" class="hidden" />
         <el-input v-model="queryForm.pageSize" class="hidden" />
         <el-form-item label="">
-          <el-input v-model="queryForm.code" style="width:230px" placeholder="Code" />
+          <el-select v-model="queryForm.channelCode" clearable placeholder="Channel Code">
+            <el-option
+              v-for="(val,key) in channelCodes"
+              :key="key"
+              :label="`${val.name}(${val.value})`"
+              :value="key"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="">
-          <el-input v-model="queryForm.name" style="width:230px" placeholder="Name" />
+          <el-input v-model="queryForm.currency" style="width:230px" placeholder="Currency" />
         </el-form-item>
         <el-form-item>
           <el-button :loading="loading" type="primary" @click="handleQuery">Query</el-button>
-          <el-button v-show="showButton('Add',actions)" type="primary" @click="handleAdd()">Add Dictionary</el-button>
+          <!-- <el-button v-show="showButton('Add',actions)" type="primary" @click="handleAdd()">Add Bank Branch</el-button> -->
         </el-form-item>
       </el-form>
     </div>
 
-    <el-table :data="dictionaryList" style="width:100%;margin-top:30px;" border>
-      <el-table-column v-if="false" align="center" label="Organization Id">
+    <el-table :data="bankBranchList" style="width:100%;margin-top:30px;" border>
+      <el-table-column v-if="false" align="center" label="Bank Branch Id">
         <template slot-scope="scope">
           {{ scope.row.id }}
         </template>
       </el-table-column>
-      <el-table-column v-if="false" align="center" fixed label="Superior Code" width="200">
+      <el-table-column align="center" fixed label="Channel Code" width="200">
         <template slot-scope="scope">
-          {{ scope.row.parentId }}
+          {{ scope.row.channelCode }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="Code" width="200">
+      <el-table-column align="center" label="Location Id" width="200">
         <template slot-scope="scope">
-          {{ scope.row.code == null?'┗':scope.row.code }}
+          {{ scope.row.locationId }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="Name" width="200">
+      <el-table-column align="center" label="Bank Id" width="200">
         <template slot-scope="scope">
-          {{ scope.row.name }}
+          {{ scope.row.bankId }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="Type" width="200">
+      <el-table-column align="center" label="Bank Branch" width="500">
         <template slot-scope="scope">
-          {{ scope.row.type | typeTextFilter }}
+          {{ scope.row.bankBranch }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="value" width="200">
+      <el-table-column align="center" label="Transation Mode" width="200">
         <template slot-scope="scope">
-          {{ scope.row.value }}
+          {{ scope.row.transactionType }}
         </template>
       </el-table-column>
       <el-table-column align="center" label="Status" width="200">
@@ -55,40 +62,82 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column align="center" fixed="right" label="Operations">
+      <el-table-column align="center" fixed="right" width="200" label="Operations">
         <template slot-scope="scope">
           <el-button v-show="showButton('View',actions)" type="primary" size="small" @click="handleView(scope)">View</el-button>
-          <el-button v-show="showButton('Edit',actions)" type="primary" size="small" @click="handleEdit(scope)">Edit</el-button>
-          <el-button v-show="showButton('Add',actions)" v-if="scope.row.parentId==scope.row.id" type="primary" size="small" @click="handleAddSub(scope)">Add Subset</el-button>
+          <!-- <el-button v-show="showButton('Edit',actions)" type="primary" size="small" @click="handleEdit(scope)">Edit</el-button> -->
         </template>
       </el-table-column>
     </el-table>
     <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="handleQuery" />
 
     <el-dialog :visible.sync="dialogVisible" :title="dialogTitle">
-      <el-form :model="dictionary" label-width="120px" label-position="right">
-        <el-input v-model="dictionary.id" class="hidden" />
-        <el-form-item label="Display Name">
-          <el-input v-model="dictionary.name" :disabled="disableInput" placeholder="Please enter the Display name" />
-        </el-form-item>
-        <el-form-item :class="{'hidden':addSubset||dictionary.parentId!=null}" label="Code">
-          <el-input v-model="dictionary.code" :disabled="disableInput" placeholder="Please enter the code" />
-        </el-form-item>
-        <el-form-item label="Value">
-          <el-input v-model="dictionary.value" :disabled="disableInput" placeholder="Please enter the value" />
-        </el-form-item>
-        <el-form-item label="Type">
-          <el-select v-model="dictionary.type" :disabled="disableInput||addSubset" placeholder="Please Select">
+      <el-form :model="bankBranch" label-width="150px" label-position="right">
+        <el-input v-model="bankBranch.id" class="hidden" />
+        <el-form-item label="Channel Code">
+          <el-select v-model="queryForm.channelCode" clearable placeholder="Please Select">
             <el-option
-              v-for="item in dictTypes"
-              :key="item.key"
-              :label="item.label"
-              :value="item.key"
+              v-for="(val,key) in channelCodes"
+              :key="key"
+              :label="`${val.name}(${val.value})`"
+              :value="key"
             />
           </el-select>
         </el-form-item>
+        <el-form-item label="Location Id">
+          <el-input v-model="bankBranch.locationId" :disabled="disableInput" placeholder="Please enter the location id" />
+        </el-form-item>
+        <el-form-item label="Bank Id">
+          <el-input v-model="bankBranch.bankId" :disabled="disableInput" placeholder="Please enter the bank id" />
+        </el-form-item>
+        <el-form-item label="Bank Name">
+          <el-input v-model="bankBranch.bankName" :disabled="disableInput" placeholder="Please enter the bank name" />
+        </el-form-item>
+        <el-form-item label="Bank Branch">
+          <el-input v-model="bankBranch.bankBranch" :disabled="disableInput" placeholder="Please enter the bank branch" />
+        </el-form-item>
+        <el-form-item label="Transaction Mode">
+          <el-select v-model="bankBranch.transactionType" :disabled="disableInput" clearable placeholder="Please Select">
+            <el-option
+              v-for="(val,key) in transactionModes"
+              :key="key"
+              :label="val.name"
+              :value="key"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="Address">
+          <el-input v-model="bankBranch.address" :disabled="disableInput" placeholder="Please enter the address" />
+        </el-form-item>
+        <el-form-item label="City">
+          <el-input v-model="bankBranch.city" :disabled="disableInput" placeholder="Please enter the city" />
+        </el-form-item>
+        <el-form-item label="State">
+          <el-input v-model="bankBranch.state" :disabled="disableInput" placeholder="Please enter the state" />
+        </el-form-item>
+        <el-form-item label="Currency">
+          <el-input v-model="bankBranch.currency" :disabled="disableInput" placeholder="Please enter the currency" />
+        </el-form-item>
+        <el-form-item label="Country Name">
+          <el-input v-model="bankBranch.countryName" :disabled="disableInput" placeholder="Please enter the country name" />
+        </el-form-item>
+        <el-form-item label="Country Code">
+          <el-input v-model="bankBranch.currency" :disabled="disableInput" placeholder="Please enter the country code" />
+        </el-form-item>
+        <el-form-item label="Phone">
+          <el-input v-model="bankBranch.phone" :disabled="disableInput" placeholder="Please enter the phone" />
+        </el-form-item>
+        <el-form-item label="Payment Mode">
+          <el-input v-model="bankBranch.paymentMode" :disabled="disableInput" placeholder="Please enter the Payment Mode" />
+        </el-form-item>
+        <el-form-item label="Hours Of Opertation">
+          <el-input v-model="bankBranch.hoursOfOpertation" :disabled="disableInput" placeholder="Please enter the hours of opertation" />
+        </el-form-item>
+        <el-form-item label="Holidays">
+          <el-input v-model="bankBranch.holidays" :disabled="disableInput" placeholder="Please enter the holidays" />
+        </el-form-item>
         <el-form-item label="Status">
-          <el-select v-model="dictionary.status" :disabled="disableInput" placeholder="Please Select">
+          <el-select v-model="bankBranch.status" :disabled="disableInput" placeholder="Please Select">
             <el-option
               v-for="item in statusList"
               :key="item.key"
@@ -97,19 +146,10 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="JSON Field">
-          <el-input
-            v-model="dictionary.fileds"
-            :autosize="{ minRows: 4, maxRows: 6}"
-            type="textarea"
-            :disabled="disableInput"
-            placeholder="Please enter a JSON value"
-          />
-        </el-form-item>
       </el-form>
       <div style="text-align:right;">
         <el-button :class="{'hidden':disableInput}" type="danger" @click="dialogVisible=false">Cancel</el-button>
-        <el-button :class="{'hidden':disableInput}" type="primary" @click="confirmDictionary">Confirm</el-button>
+        <el-button :class="{'hidden':disableInput}" type="primary" @click="confirmBankBranch">Confirm</el-button>
       </div>
     </el-dialog>
   </div>
@@ -118,17 +158,27 @@
 <script>
 import Pagination from '@/components/Pagination'
 import { deepClone } from '@/utils'
-import { addDictionary, getDictionaries, updateDictionary } from '@/api/dictionary'
+import { init, addBankBranch, getBankBranchs, updateBankBranch } from '@/api/bankBranch'
 
 const defaultRole = {
   id: null,
-  parentId: null,
-  name: '',
-  code: null,
-  value: '',
+  channelCode: null,
+  locationId: '',
+  bankId: null,
+  bankName: '',
+  bankBranch: '',
+  transactionType: '',
+  address: '',
+  city: '',
+  state: '',
+  currency: '',
+  countryName: '',
+  countryCode: '',
+  hoursOfOpertation: '',
+  holidays: '',
+  phone: '',
+  paymentMode: '',
   status: null,
-  encrypted: null,
-  type: null,
   fileds: ''
 }
 
@@ -141,34 +191,25 @@ export default {
         0: 'Disable'
       }
       return textMap[status]
-    },
-    typeTextFilter(status) {
-      const textMap = {
-        0: 'Dictionary',
-        1: 'Parameters'
-      }
-      return textMap[status]
     }
   },
   data() {
     return {
-      dictionary: Object.assign({}, defaultRole),
+      bankBranch: Object.assign({}, defaultRole),
       routes: [],
       queryForm: {
-        code: '',
-        name: '',
+        channelCode: '',
+        currency: '',
         pageNum: '',
         pageSize: ''
       },
       actions: [],
-      dictionaryList: [],
+      bankBranchList: [],
+      channelCodes: {},
+      transactionModes: {},
       statusList: [
         { 'key': 0, 'label': 'Disable' },
         { 'key': 1, 'label': 'Normal' }
-      ],
-      dictTypes: [
-        { 'key': 0, 'label': 'Dictionary' },
-        { 'key': 1, 'label': 'Parameters' }
       ],
       dialogVisible: false,
       dialogType: 'new',
@@ -196,74 +237,68 @@ export default {
   },
   created() {
     this.actions = this.storage(this.$route.name)
-    this.getDictionaries()
+    this.init()
+    this.getBankBranchs()
   },
   methods: {
-    async getDictionaries(query) {
+    async init() {
+      const { data } = await init()
+      this.channelCodes = data.CHANNEL_CODE
+      this.transactionModes = data.TRANSACTION_MODE
+    },
+    async getBankBranchs(query) {
       this.loading = true
-      const { data } = await getDictionaries(query)
-      this.dictionaryList = data.list
+      const { data } = await getBankBranchs(query)
+      this.bankBranchList = data.list
       this.total = data.page.total
       this.loading = false
     },
     handleAdd() {
       this.disableInput = false
-      this.dictionary = Object.assign({}, defaultRole)
+      this.bankBranch = Object.assign({}, defaultRole)
       this.dialogType = 'new'
-      this.dialogTitle = 'New Dictionary'
+      this.dialogTitle = 'New BankBranch'
       this.dialogVisible = true
-      this.addSubset = false
-    },
-    handleAddSub(scope) {
-      this.disableInput = false
-      this.dictionary = Object.assign({}, defaultRole)
-      this.dialogType = 'new'
-      this.dialogTitle = 'New Sub Dictionary'
-      this.dialogVisible = true
-      this.dictionary.type = 0
-      this.addSubset = true
-      this.dictionary.parentId = scope.row.id
     },
     handleQuery() {
       this.queryForm.pageNum = this.listQuery.page
       this.queryForm.pageSize = this.listQuery.limit
-      this.getDictionaries(this.queryForm)
+      this.getBankBranchs(this.queryForm)
     },
     handleView(scope) {
-      this.dialogTitle = 'View Dictionary'
+      this.dialogTitle = 'View BankBranch'
       this.disableInput = true
       this.dialogVisible = true
       this.checkStrictly = true
-      this.dictionary = deepClone(scope.row)
+      this.bankBranch = deepClone(scope.row)
     },
     handleEdit(scope) {
-      this.dialogTitle = 'Edit Dictionary'
+      this.dialogTitle = 'Edit BankBranch'
       this.disableInput = false
       this.dialogType = 'edit'
       this.dialogVisible = true
       this.checkStrictly = true
-      this.dictionary = deepClone(scope.row)
-      this.addSubset = false
+      this.bankBranch = deepClone(scope.row)
     },
-    async confirmDictionary() {
+    async confirmBankBranch() {
       const isEdit = this.dialogType === 'edit'
       if (isEdit) {
-        await updateDictionary(this.dictionary)
+        await updateBankBranch(this.bankBranch)
         this.dialogVisible = false
         this.$message({
           type: 'success',
           message: 'The parameter update success !'
         })
       } else {
-        const { data } = await addDictionary(this.dictionary)
+        const { data } = await addBankBranch(this.bankBranch)
         this.dialogVisible = false
-        this.dictionary.id = data.id
+        this.bankBranch.id = data.id
         this.$message({
           type: 'success',
           message: 'The parameter add success !'
         })
       }
-      this.getDictionaries()
+      this.getBankBranchs(this.queryForm)
     }
   }
 }

@@ -5,47 +5,86 @@
         <el-input v-model="queryForm.pageNum" class="hidden" />
         <el-input v-model="queryForm.pageSize" class="hidden" />
         <el-form-item label="">
-          <el-input v-model="queryForm.code" style="width:230px" placeholder="Code" />
+          <el-select v-model="queryForm.channelAccountId" clearable placeholder="Channel Account">
+            <el-option
+              v-for="(val,key) in channelAccountMap"
+              :key="key"
+              :label="`${val.remark} - ${businessCodes[val.businessCode].name} - ${val.accountNo}`"
+              :value="key"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="">
-          <el-input v-model="queryForm.name" style="width:230px" placeholder="Name" />
+          <el-select v-model="queryForm.category" clearable placeholder="Channel Category">
+            <el-option
+              v-for="(val,key) in categories"
+              :key="key"
+              :label="val.name"
+              :value="key"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="">
+          <el-select v-model="queryForm.businessCode" clearable placeholder="Business Code">
+            <el-option
+              v-for="(val,key) in businessCodes"
+              :key="key"
+              :label="val.name"
+              :value="key"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="">
+          <el-select v-model="queryForm.channelCode" clearable placeholder="Channel Code">
+            <el-option
+              v-for="(val,key) in channelCodes"
+              :key="key"
+              :label="`${val.name}(${val.value})`"
+              :value="key"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item>
           <el-button :loading="loading" type="primary" @click="handleQuery">Query</el-button>
-          <el-button v-show="showButton('Add',actions)" type="primary" @click="handleAdd()">Add Dictionary</el-button>
+          <el-button v-show="showButton('Add',actions)" type="primary" @click="handleAdd()">Add Rule</el-button>
         </el-form-item>
       </el-form>
     </div>
 
-    <el-table :data="dictionaryList" style="width:100%;margin-top:30px;" border>
+    <el-table :data="channelRuleList" style="width:100%;margin-top:10px;" border>
       <el-table-column v-if="false" align="center" label="Organization Id">
         <template slot-scope="scope">
           {{ scope.row.id }}
         </template>
       </el-table-column>
-      <el-table-column v-if="false" align="center" fixed label="Superior Code" width="200">
+      <el-table-column align="center" fixed label="UID" width="200">
         <template slot-scope="scope">
-          {{ scope.row.parentId }}
+          {{ scope.row.uid }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="Code" width="200">
+      <el-table-column align="center" label="Channel Account Id" width="200">
         <template slot-scope="scope">
-          {{ scope.row.code == null?'┗':scope.row.code }}
+          {{ channelAccountMap[scope.row.channelAccountId].remark }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="Name" width="200">
+      <el-table-column align="center" label="Anonymous" width="200">
         <template slot-scope="scope">
-          {{ scope.row.name }}
+          {{ anonymousMap[scope.row.anonymous] }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="Type" width="200">
+      <el-table-column align="center" label="Bisiness Code" width="200">
         <template slot-scope="scope">
-          {{ scope.row.type | typeTextFilter }}
+          {{ businessCodes[scope.row.businessCode].name }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="value" width="200">
+      <el-table-column align="center" label="Channel Code" width="200">
         <template slot-scope="scope">
-          {{ scope.row.value }}
+          {{ channelCodes[scope.row.channelCode].name }}
+        </template>
+      </el-table-column>
+      <el-table-column align="center" label="Float Value" width="200">
+        <template slot-scope="scope">
+          {{ scope.row.floatValue }}
         </template>
       </el-table-column>
       <el-table-column align="center" label="Status" width="200">
@@ -55,40 +94,79 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column align="center" fixed="right" label="Operations">
+      <el-table-column align="center" fixed="right" width="300" label="Operations">
         <template slot-scope="scope">
           <el-button v-show="showButton('View',actions)" type="primary" size="small" @click="handleView(scope)">View</el-button>
           <el-button v-show="showButton('Edit',actions)" type="primary" size="small" @click="handleEdit(scope)">Edit</el-button>
-          <el-button v-show="showButton('Add',actions)" v-if="scope.row.parentId==scope.row.id" type="primary" size="small" @click="handleAddSub(scope)">Add Subset</el-button>
         </template>
       </el-table-column>
     </el-table>
     <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="handleQuery" />
 
     <el-dialog :visible.sync="dialogVisible" :title="dialogTitle">
-      <el-form :model="dictionary" label-width="120px" label-position="right">
-        <el-input v-model="dictionary.id" class="hidden" />
-        <el-form-item label="Display Name">
-          <el-input v-model="dictionary.name" :disabled="disableInput" placeholder="Please enter the Display name" />
+      <el-form :model="channelRule" label-width="180px" label-position="right">
+        <el-input v-model="channelRule.id" class="hidden" />
+        <el-form-item label="UID">
+          <el-input v-model="channelRule.uid" :disabled="disableInput" placeholder="Please enter the user id" />
         </el-form-item>
-        <el-form-item :class="{'hidden':addSubset||dictionary.parentId!=null}" label="Code">
-          <el-input v-model="dictionary.code" :disabled="disableInput" placeholder="Please enter the code" />
-        </el-form-item>
-        <el-form-item label="Value">
-          <el-input v-model="dictionary.value" :disabled="disableInput" placeholder="Please enter the value" />
-        </el-form-item>
-        <el-form-item label="Type">
-          <el-select v-model="dictionary.type" :disabled="disableInput||addSubset" placeholder="Please Select">
+        <el-form-item label="Channel Account">
+          <el-select v-model="channelRule.channelAccountId" :disabled="disableInput" style="width:450" placeholder="Please Select">
             <el-option
-              v-for="item in dictTypes"
-              :key="item.key"
-              :label="item.label"
-              :value="item.key"
+              v-for="(val,key) in channelAccountMap"
+              :key="key"
+              :label="`${val.remark} - ${businessCodes[val.businessCode].name} - ${val.accountNo}`"
+              :value="key"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="Channel Category">
+          <el-select v-model="channelRule.category" :disabled="disableInput" placeholder="Please Select">
+            <el-option
+              v-for="(val,key) in categories"
+              :key="key"
+              :label="val.name"
+              :value="key"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="Business Code">
+          <el-select v-model="channelRule.businessCode" :disabled="disableInput" placeholder="Please Select">
+            <el-option
+              v-for="(val,key) in businessCodes"
+              :key="key"
+              :label="val.name"
+              :value="key"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="Channel Code">
+          <el-select v-model="channelRule.channelCode" :disabled="disableInput" placeholder="Please Select">
+            <el-option
+              v-for="(val,key) in channelCodes"
+              :key="key"
+              :label="`${val.name}(${val.value})`"
+              :value="key"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="Channel Currency">
+          <el-input v-model="channelRule.channelCurrency" :disabled="disableInput" placeholder="Please enter the channel currency" />
+        </el-form-item>
+        <el-form-item label="Float Value">
+          <el-input v-model="channelRule.floatValue" :disabled="disableInput" placeholder="Please enter the float value" />
+        </el-form-item>
+        <el-form-item label="Anonymous">
+          <el-select v-model="channelRule.anonymous" :disabled="disableInput" placeholder="Please Select">
+            <el-option
+              v-for="(val,key) in anonymousMap"
+              :key="key"
+              :label="val"
+              :value="key"
             />
           </el-select>
         </el-form-item>
         <el-form-item label="Status">
-          <el-select v-model="dictionary.status" :disabled="disableInput" placeholder="Please Select">
+          <el-select v-model="channelRule.status" :disabled="disableInput" placeholder="Please Select">
             <el-option
               v-for="item in statusList"
               :key="item.key"
@@ -99,7 +177,7 @@
         </el-form-item>
         <el-form-item label="JSON Field">
           <el-input
-            v-model="dictionary.fileds"
+            v-model="channelRule.fileds"
             :autosize="{ minRows: 4, maxRows: 6}"
             type="textarea"
             :disabled="disableInput"
@@ -118,17 +196,19 @@
 <script>
 import Pagination from '@/components/Pagination'
 import { deepClone } from '@/utils'
-import { addDictionary, getDictionaries, updateDictionary } from '@/api/dictionary'
+import { addChannelRule, updateChannelRule, getChannelRules, init } from '@/api/channelRule'
 
 const defaultRole = {
   id: null,
-  parentId: null,
-  name: '',
-  code: null,
-  value: '',
-  status: null,
-  encrypted: null,
-  type: null,
+  uid: null,
+  category: null,
+  channelAccountId: null,
+  businessCode: '',
+  channelCode: '',
+  channelCurrency: '',
+  floatValue: null,
+  anonymous: '',
+  status: '',
   fileds: ''
 }
 
@@ -141,35 +221,33 @@ export default {
         0: 'Disable'
       }
       return textMap[status]
-    },
-    typeTextFilter(status) {
-      const textMap = {
-        0: 'Dictionary',
-        1: 'Parameters'
-      }
-      return textMap[status]
     }
   },
   data() {
     return {
-      dictionary: Object.assign({}, defaultRole),
-      routes: [],
+      channelRule: Object.assign({}, defaultRole),
       queryForm: {
-        code: '',
-        name: '',
+        channelAccountId: '',
+        category: '',
+        channelCode: '',
+        businessCode: '',
         pageNum: '',
         pageSize: ''
       },
       actions: [],
-      dictionaryList: [],
+      channelRuleList: [],
+      businessCodes: {},
+      channelCodes: {},
+      categories: {},
+      channelAccountMap: {},
       statusList: [
         { 'key': 0, 'label': 'Disable' },
         { 'key': 1, 'label': 'Normal' }
       ],
-      dictTypes: [
-        { 'key': 0, 'label': 'Dictionary' },
-        { 'key': 1, 'label': 'Parameters' }
-      ],
+      anonymousMap: {
+        1: 'Yes',
+        2: 'No'
+      },
       dialogVisible: false,
       dialogType: 'new',
       dialogTitle: '',
@@ -179,7 +257,6 @@ export default {
         children: 'children',
         label: 'title'
       },
-      addSubset: false,
       loading: false,
       total: 0,
       listQuery: {
@@ -196,74 +273,73 @@ export default {
   },
   created() {
     this.actions = this.storage(this.$route.name)
-    this.getDictionaries()
+    this.init()
+    this.getChannelRules()
   },
   methods: {
-    async getDictionaries(query) {
+    async init() {
+      const { data } = await init()
+      this.businessCodes = data.BUSINESS_CODE
+      this.channelCodes = data.CHANNEL_CODE
+      this.categories = data.CHANNEL_ACCOUNT_CATEGORY
+      this.channelAccountMap = data.SYS_CHANNEL_ACCOUNT_MAP
+    },
+    async getChannelRules(query) {
       this.loading = true
-      const { data } = await getDictionaries(query)
-      this.dictionaryList = data.list
+      const { data } = await getChannelRules(query)
+      this.channelRuleList = data.list
       this.total = data.page.total
       this.loading = false
     },
     handleAdd() {
       this.disableInput = false
-      this.dictionary = Object.assign({}, defaultRole)
+      this.channelRule = Object.assign({}, defaultRole)
       this.dialogType = 'new'
-      this.dialogTitle = 'New Dictionary'
+      this.dialogTitle = 'New Channel Rule'
       this.dialogVisible = true
-      this.addSubset = false
-    },
-    handleAddSub(scope) {
-      this.disableInput = false
-      this.dictionary = Object.assign({}, defaultRole)
-      this.dialogType = 'new'
-      this.dialogTitle = 'New Sub Dictionary'
-      this.dialogVisible = true
-      this.dictionary.type = 0
-      this.addSubset = true
-      this.dictionary.parentId = scope.row.id
     },
     handleQuery() {
       this.queryForm.pageNum = this.listQuery.page
       this.queryForm.pageSize = this.listQuery.limit
-      this.getDictionaries(this.queryForm)
+      this.getChannelRules(this.queryForm)
     },
     handleView(scope) {
-      this.dialogTitle = 'View Dictionary'
+      this.dialogTitle = 'View Channel Rule'
       this.disableInput = true
       this.dialogVisible = true
       this.checkStrictly = true
-      this.dictionary = deepClone(scope.row)
+      this.channelRule = deepClone(scope.row)
     },
     handleEdit(scope) {
-      this.dialogTitle = 'Edit Dictionary'
+      this.dialogTitle = 'Edit Channel Rule'
       this.disableInput = false
       this.dialogType = 'edit'
       this.dialogVisible = true
       this.checkStrictly = true
-      this.dictionary = deepClone(scope.row)
-      this.addSubset = false
+      this.channelRule = deepClone(scope.row)
+      this.channelRule.channelAccountId = this.channelRule.channelAccountId + ''
+      this.channelRule.category = this.channelRule.category + ''
+      this.channelRule.anonymous = this.channelRule.anonymous + ''
     },
     async confirmDictionary() {
       const isEdit = this.dialogType === 'edit'
       if (isEdit) {
-        await updateDictionary(this.dictionary)
+        await updateChannelRule(this.channelRule)
         this.dialogVisible = false
         this.$message({
           type: 'success',
-          message: 'The parameter update success !'
+          message: 'The channel rule update success !'
         })
       } else {
-        const { data } = await addDictionary(this.dictionary)
+        const { data } = await addChannelRule(this.channelRule)
         this.dialogVisible = false
-        this.dictionary.id = data.id
+        this.channelRule.id = data.id
         this.$message({
           type: 'success',
-          message: 'The parameter add success !'
+          message: 'The channel rule add success !'
         })
       }
-      this.getDictionaries()
+      this.getChannelRules()
     }
   }
 }

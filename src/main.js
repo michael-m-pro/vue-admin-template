@@ -77,6 +77,14 @@ Vue.prototype.storage = function(key, value) {
   return JSON.parse(sessionStorage.getItem(key))
 }
 
+/**
+ * 当点击控件时去掉readonly属性
+ * @param {*} event event
+ */
+Vue.prototype.handleFocusEvent = function(event) {
+  event.target && event.target.removeAttribute('readonly')
+}
+
 new Vue({
   el: '#app',
   router,

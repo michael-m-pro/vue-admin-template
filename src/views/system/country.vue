@@ -57,7 +57,7 @@
     </el-table>
     <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="handleQuery" />
 
-    <el-dialog :visible.sync="dialogVisible" :title="dialogTitle">
+    <el-dialog :close-on-click-modal="false" :visible.sync="dialogVisible" :title="dialogTitle">
       <el-form :model="country" label-width="120px" label-position="right">
         <el-input v-model="country.id" class="hidden" />
         <el-form-item label="Country Code">

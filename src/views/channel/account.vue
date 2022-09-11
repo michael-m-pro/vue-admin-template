@@ -40,7 +40,7 @@
           {{ scope.row.remark }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="Category" width="200">
+      <el-table-column align="center" label="Business Category" width="200">
         <template slot-scope="scope">
           {{ categories[scope.row.category].name }}
         </template>
@@ -96,13 +96,13 @@
     </el-table>
     <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="handleQuery" />
 
-    <el-dialog :visible.sync="dialogVisible" :title="dialogTitle">
+    <el-dialog :close-on-click-modal="false" :visible.sync="dialogVisible" :title="dialogTitle">
       <el-form :model="channelAccount" label-width="210px" label-position="right">
         <el-input v-model="channelAccount.id" class="hidden" />
         <el-form-item label="Channel Name">
           <el-input v-model="channelAccount.remark" :disabled="disableInput" placeholder="Please enter the Channel name" />
         </el-form-item>
-        <el-form-item label="Channel Category">
+        <el-form-item label="Business Category">
           <el-select v-model="channelAccount.category" :disabled="disableInput" clearable placeholder="Please Select">
             <el-option
               v-for="(val,key) in categories"
@@ -288,7 +288,7 @@ export default {
       this.channelCodes = data.CHANNEL_CODE
       this.transactionModes = data.TRANSACTION_MODE
       this.feeModes = data.FEE_MODE
-      this.categories = data.CHANNEL_ACCOUNT_CATEGORY
+      this.categories = data.BUSINESS_CATEGORY
     },
     async getChannelAccounts(query) {
       this.loading = true
@@ -315,6 +315,8 @@ export default {
       this.dialogVisible = true
       this.checkStrictly = true
       this.channelAccount = deepClone(scope.row)
+      this.channelAccount.category = this.channelAccount.category + ''
+      this.channelAccount.feeMode = this.channelAccount.feeMode + ''
     },
     handleEdit(scope) {
       this.dialogTitle = 'Edit Channel Account'
@@ -324,6 +326,7 @@ export default {
       this.checkStrictly = true
       this.channelAccount = deepClone(scope.row)
       this.channelAccount.category = this.channelAccount.category + ''
+      this.channelAccount.feeMode = this.channelAccount.feeMode + ''
     },
     async confirmDictionary() {
       const isEdit = this.dialogType === 'edit'

@@ -15,7 +15,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="">
-          <el-select v-model="queryForm.category" clearable placeholder="Channel Category">
+          <el-select v-model="queryForm.category" clearable placeholder="Business Category">
             <el-option
               v-for="(val,key) in categories"
               :key="key"
@@ -103,7 +103,7 @@
     </el-table>
     <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="handleQuery" />
 
-    <el-dialog :visible.sync="dialogVisible" :title="dialogTitle">
+    <el-dialog :close-on-click-modal="false" :visible.sync="dialogVisible" :title="dialogTitle">
       <el-form :model="channelRule" label-width="180px" label-position="right">
         <el-input v-model="channelRule.id" class="hidden" />
         <el-form-item label="UID">
@@ -119,7 +119,7 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="Channel Category">
+        <el-form-item label="Business Category">
           <el-select v-model="channelRule.category" :disabled="disableInput" placeholder="Please Select">
             <el-option
               v-for="(val,key) in categories"
@@ -281,7 +281,7 @@ export default {
       const { data } = await init()
       this.businessCodes = data.BUSINESS_CODE
       this.channelCodes = data.CHANNEL_CODE
-      this.categories = data.CHANNEL_ACCOUNT_CATEGORY
+      this.categories = data.BUSINESS_CATEGORY
       this.channelAccountMap = data.SYS_CHANNEL_ACCOUNT_MAP
     },
     async getChannelRules(query) {
@@ -309,6 +309,9 @@ export default {
       this.dialogVisible = true
       this.checkStrictly = true
       this.channelRule = deepClone(scope.row)
+      this.channelRule.channelAccountId = this.channelRule.channelAccountId + ''
+      this.channelRule.category = this.channelRule.category + ''
+      this.channelRule.anonymous = this.channelRule.anonymous + ''
     },
     handleEdit(scope) {
       this.dialogTitle = 'Edit Channel Rule'

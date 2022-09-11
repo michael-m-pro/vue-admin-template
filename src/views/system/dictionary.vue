@@ -60,13 +60,13 @@
     </el-table>
     <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="handleQuery" />
 
-    <el-dialog :visible.sync="dialogVisible" :title="dialogTitle">
+    <el-dialog :close-on-click-modal="false" :visible.sync="dialogVisible" :title="dialogTitle">
       <el-form :model="dictionary" label-width="120px" label-position="right">
         <el-input v-model="dictionary.id" class="hidden" />
         <el-form-item label="Display Name">
           <el-input v-model="dictionary.name" :disabled="disableInput" placeholder="Please enter the Display name" />
         </el-form-item>
-        <el-form-item :class="{'hidden':addSubset||dictionary.parentId!=null}" label="Code">
+        <el-form-item :class="{'hidden':addSubset||dictionary.parentId!==dictionary.id}" label="Code">
           <el-input v-model="dictionary.code" :disabled="disableInput" placeholder="Please enter the code" />
         </el-form-item>
         <el-form-item label="Value">

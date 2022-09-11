@@ -52,7 +52,7 @@
       </el-table-column>
       <el-table-column align="center" label="Transation Mode" width="200">
         <template slot-scope="scope">
-          {{ scope.row.transactionType }}
+          {{ scope.row.transactionMode }}
         </template>
       </el-table-column>
       <el-table-column align="center" label="Status" width="200">
@@ -71,7 +71,7 @@
     </el-table>
     <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="handleQuery" />
 
-    <el-dialog :visible.sync="dialogVisible" :title="dialogTitle">
+    <el-dialog :close-on-click-modal="false" :visible.sync="dialogVisible" :title="dialogTitle">
       <el-form :model="bankBranch" label-width="150px" label-position="right">
         <el-input v-model="bankBranch.id" class="hidden" />
         <el-form-item label="Channel Code">
@@ -97,7 +97,7 @@
           <el-input v-model="bankBranch.bankBranch" :disabled="disableInput" placeholder="Please enter the bank branch" />
         </el-form-item>
         <el-form-item label="Transaction Mode">
-          <el-select v-model="bankBranch.transactionType" :disabled="disableInput" clearable placeholder="Please Select">
+          <el-select v-model="bankBranch.transactionMode" :disabled="disableInput" clearable placeholder="Please Select">
             <el-option
               v-for="(val,key) in transactionModes"
               :key="key"
@@ -167,7 +167,7 @@ const defaultRole = {
   bankId: null,
   bankName: '',
   bankBranch: '',
-  transactionType: '',
+  transactionMode: '',
   address: '',
   city: '',
   state: '',

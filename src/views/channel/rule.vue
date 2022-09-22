@@ -82,6 +82,11 @@
           {{ channelCodes[scope.row.channelCode].name }}
         </template>
       </el-table-column>
+      <el-table-column align="center" label="Channel Rlue" width="200">
+        <template slot-scope="scope">
+          {{ scope.row.channelCurrency }}
+        </template>
+      </el-table-column>
       <el-table-column align="center" label="Float Value" width="200">
         <template slot-scope="scope">
           {{ scope.row.floatValue }}
@@ -177,7 +182,7 @@
         </el-form-item>
         <el-form-item label="JSON Field">
           <el-input
-            v-model="channelRule.fileds"
+            v-model="channelRule.fields"
             :autosize="{ minRows: 4, maxRows: 6}"
             type="textarea"
             :disabled="disableInput"
@@ -209,7 +214,7 @@ const defaultRole = {
   floatValue: null,
   anonymous: '',
   status: '',
-  fileds: ''
+  fields: null
 }
 
 export default {
@@ -297,6 +302,7 @@ export default {
       this.dialogType = 'new'
       this.dialogTitle = 'New Channel Rule'
       this.dialogVisible = true
+      this.channelRule.status = 1
     },
     handleQuery() {
       this.queryForm.pageNum = this.listQuery.page

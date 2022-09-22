@@ -176,7 +176,7 @@
         <el-input v-model="merchantApi.id" class="hidden" />
         <el-input v-model="merchantApi.uid" class="hidden" />
         <el-form-item v-if="merchantApi.id" label="Key">
-          <el-tag type="success">
+          <el-tag type="success" style="font-size:20px">
             {{ merchantApi.apiKey }}
           </el-tag>
           <el-button v-show="showButton('ResetApiKey',actions)" type="primary" style="margin-left:20px" @click="resetApiKey">Reset ApiKey</el-button>

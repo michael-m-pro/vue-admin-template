@@ -99,7 +99,7 @@
         </el-form-item>
         <el-form-item label="JSON Field">
           <el-input
-            v-model="dictionary.fileds"
+            v-model="dictionary.fields"
             :autosize="{ minRows: 4, maxRows: 6}"
             type="textarea"
             :disabled="disableInput"
@@ -129,7 +129,7 @@ const defaultRole = {
   status: null,
   encrypted: null,
   type: null,
-  fileds: ''
+  fields: ''
 }
 
 export default {

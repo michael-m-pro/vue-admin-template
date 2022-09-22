@@ -35,6 +35,11 @@
           {{ scope.row.symbol }}
         </template>
       </el-table-column>
+      <el-table-column align="center" label="Category" width="200">
+        <template slot-scope="scope">
+          {{ currencyCategoies[scope.row.category].name }}
+        </template>
+      </el-table-column>
       <el-table-column align="center" label="Status" width="200">
         <template slot-scope="{row}">
           <el-tag>
@@ -73,6 +78,16 @@
         <el-form-item label="Symbol">
           <el-input v-model="currency.symbol" :disabled="disableInput" placeholder="Please enter the symbol" />
         </el-form-item>
+        <el-form-item label="Category">
+          <el-select v-model="currency.category" :disabled="disableInput" placeholder="Please Select">
+            <el-option
+              v-for="(val,key) in currencyCategoies"
+              :key="key"
+              :label="val.name"
+              :value="key"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="Status">
           <el-select v-model="currency.status" :disabled="disableInput" placeholder="Please Select">
             <el-option
@@ -95,13 +110,14 @@
 <script>
 import Pagination from '@/components/Pagination'
 import { deepClone } from '@/utils'
-import { addCurrency, getCurrencies, updateCurrency } from '@/api/currency'
+import { init, addCurrency, getCurrencies, updateCurrency } from '@/api/currency'
 
 const defaultRole = {
   id: null,
   code: null,
   name: '',
   status: null,
+  category: null,
   createTime: '',
   updateTime: ''
 }
@@ -128,6 +144,7 @@ export default {
       },
       actions: [],
       currencyList: [],
+      currencyCategoies: {},
       statusList: [
         { 'key': 0, 'label': 'Disable' },
         { 'key': 1, 'label': 'Normal' }
@@ -160,9 +177,14 @@ export default {
   },
   created() {
     this.actions = this.storage(this.$route.name)
+    this.init()
     this.getCurrencies()
   },
   methods: {
+    async init() {
+      const { data } = await init()
+      this.currencyCategoies = data.CURRENCY_CATEGORY
+    },
     async getCurrencies(query) {
       this.loading = true
       const { data } = await getCurrencies(query)
@@ -179,6 +201,7 @@ export default {
       this.dialogType = 'new'
       this.dialogTitle = 'New Currency'
       this.dialogVisible = true
+      this.currency.status = 1
     },
     handleQuery() {
       this.queryForm.pageNum = this.listQuery.page
@@ -191,6 +214,7 @@ export default {
       this.dialogVisible = true
       this.checkStrictly = true
       this.currency = deepClone(scope.row)
+      this.currency.category = this.currency.category + ''
     },
     handleEdit(scope) {
       this.dialogTitle = 'Edit Currency'
@@ -199,6 +223,7 @@ export default {
       this.dialogVisible = true
       this.checkStrictly = true
       this.currency = deepClone(scope.row)
+      this.currency.category = this.currency.category + ''
     },
     async confirmCurrency() {
       const isEdit = this.dialogType === 'edit'

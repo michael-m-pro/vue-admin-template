@@ -1,4 +1,4 @@
-import { addCurrency, deleteCurrency, getCurrencies, updateCurrency } from '@/api/currency'
+import { init, addCurrency, deleteCurrency, getCurrencies, updateCurrency } from '@/api/currency'
 
 const actions = {
   // add organization
@@ -32,6 +32,16 @@ const actions = {
   getCurrencies(data) {
     return new Promise((resolve, reject) => {
       getCurrencies(data).then(response => {
+        const { data } = response
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  init(data) {
+    return new Promise((resolve, reject) => {
+      init(data).then(response => {
         const { data } = response
         resolve(data)
       }).catch(error => {

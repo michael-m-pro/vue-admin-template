@@ -1,5 +1,12 @@
 import request from '@/utils/request'
 
+export function init(data) {
+  return request({
+    url: '/currency/init',
+    method: 'get'
+  })
+}
+
 export function getCurrencies(data) {
   return request({
     url: '/currency/list',

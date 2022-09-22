@@ -72,7 +72,7 @@
           {{ channelCodes[scope.row.channelCode].name }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="settlement Currency" width="200">
+      <el-table-column align="center" label="Settlement Currency" width="200">
         <template slot-scope="scope">
           {{ scope.row.settlementCurrency }}
         </template>
@@ -157,6 +157,9 @@
         <el-form-item label="Secret Key">
           <el-input v-model="channelAccount.password" type="password" readonly :disabled="disableInput" placeholder="Please enter the secret key" @focus="handleFocusEvent" />
         </el-form-item>
+        <el-form-item label="Reserve Account Uid">
+          <el-input v-model="channelAccount.reserveAccountUid" :disabled="channelAccount.reserveAccountUid.length>0" placeholder="Please enter the secret key" />
+        </el-form-item>
         <el-form-item label="Fee Mode">
           <el-select v-model="channelAccount.feeMode" :disabled="disableInput" placeholder="Please Select">
             <el-option
@@ -182,7 +185,7 @@
         </el-form-item>
         <el-form-item label="JSON Field">
           <el-input
-            v-model="channelAccount.fileds"
+            v-model="channelAccount.fields"
             :autosize="{ minRows: 4, maxRows: 6}"
             type="textarea"
             :disabled="disableInput"
@@ -217,8 +220,9 @@ const defaultRole = {
   remark: '',
   feeMode: '',
   validTime: '',
+  reserveAccountUid: '',
   status: null,
-  fileds: ''
+  fields: null
 }
 
 export default {

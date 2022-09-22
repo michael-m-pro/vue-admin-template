@@ -55,6 +55,11 @@
           {{ categories[scope.row.category].name }}
         </template>
       </el-table-column>
+      <el-table-column align="center" label="Fee Mode" width="200">
+        <template slot-scope="scope">
+          {{ feeModes[scope.row.feeMode].name }}
+        </template>
+      </el-table-column>
       <el-table-column align="center" label="Channel Code" width="200">
         <template slot-scope="scope">
           {{ channelCodes[scope.row.channelCode].name }}
@@ -63,11 +68,6 @@
       <el-table-column align="center" label="Business Currency" width="200">
         <template slot-scope="scope">
           {{ scope.row.currency }}
-        </template>
-      </el-table-column>
-      <el-table-column align="center" label="Channel Currency" width="200">
-        <template slot-scope="scope">
-          {{ scope.row.channelCurrency }}
         </template>
       </el-table-column>
       <el-table-column align="center" label="Charge Type" width="200">

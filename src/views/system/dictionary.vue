@@ -5,10 +5,10 @@
         <el-input v-model="queryForm.pageNum" class="hidden" />
         <el-input v-model="queryForm.pageSize" class="hidden" />
         <el-form-item label="">
-          <el-input v-model="queryForm.code" style="width:300px" placeholder="Code" />
+          <el-input v-model="queryForm.code" style="width:300px" clearable placeholder="Code" />
         </el-form-item>
         <el-form-item label="">
-          <el-input v-model="queryForm.name" style="width:230px" placeholder="Name" />
+          <el-input v-model="queryForm.name" style="width:230px" clearable placeholder="Name" />
         </el-form-item>
         <el-form-item>
           <el-button :loading="loading" type="primary" @click="handleQuery">Query</el-button>
@@ -94,7 +94,7 @@
         </el-form-item>
         <el-form-item label="JSON Field">
           <el-input
-            v-model="dictionary.fileds"
+            v-model="dictionary.fields"
             :autosize="{ minRows: 4, maxRows: 6}"
             type="textarea"
             :disabled="disableInput"
@@ -124,7 +124,7 @@ const defaultRole = {
   status: null,
   encrypted: null,
   type: null,
-  fileds: ''
+  fields: null
 }
 
 export default {
@@ -208,6 +208,7 @@ export default {
       this.dialogTitle = 'New Dictionary'
       this.dialogVisible = true
       this.addSubset = false
+      this.dictionary.status = 1
     },
     handleAddSub(scope) {
       this.disableInput = false
@@ -218,6 +219,7 @@ export default {
       this.dictionary.type = 0
       this.addSubset = true
       this.dictionary.parentId = scope.row.id
+      this.dictionary.status = 1
     },
     handleQuery() {
       this.queryForm.pageNum = this.listQuery.page

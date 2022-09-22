@@ -50,6 +50,16 @@
           {{ channelCodes[scope.row.channelCode].name }}
         </template>
       </el-table-column>
+      <el-table-column align="center" label="Business Category" width="200">
+        <template slot-scope="scope">
+          {{ categories[scope.row.category].name }}
+        </template>
+      </el-table-column>
+      <el-table-column align="center" label="Fee Mode" width="200">
+        <template slot-scope="scope">
+          {{ feeModes[scope.row.feeMode].name }}
+        </template>
+      </el-table-column>
       <el-table-column align="center" label="Channel Currency" width="200">
         <template slot-scope="scope">
           {{ scope.row.channelCurrency }}
@@ -101,6 +111,16 @@
               v-for="(val,key) in channelAccountMap"
               :key="key"
               :label="`${val.remark} - ${businessCodes[val.businessCode].name} - ${val.accountNo}`"
+              :value="key"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="Business Category">
+          <el-select v-model="channelFee.category" :disabled="disableInput" clearable placeholder="Please Select">
+            <el-option
+              v-for="(val,key) in categories"
+              :key="key"
+              :label="`${val.name}(${val.value})`"
               :value="key"
             />
           </el-select>
@@ -175,6 +195,7 @@ const defaultRole = {
   feeMode: null,
   amount: null,
   percent: null,
+  category: null,
   minAmount: null,
   maxAmount: null
 }
@@ -213,6 +234,7 @@ export default {
       channelFeeList: [],
       channelAccountMap: {},
       channelCodes: {},
+      categories: {},
       feeModes: {},
       statusList: [
         { 'key': 0, 'label': 'Disable' },
@@ -281,8 +303,9 @@ export default {
       this.disableInput = false
       this.channelFee = Object.assign({}, defaultRole)
       this.dialogType = 'new'
-      this.dialogTitle = 'New ChannelFee'
+      this.dialogTitle = 'New Channel Fee'
       this.dialogVisible = true
+      this.channelFee.type = ''
     },
     handleQuery() {
       this.queryForm.pageNum = this.listQuery.page
@@ -290,17 +313,18 @@ export default {
       this.getChannelFees(this.queryForm)
     },
     handleView(scope) {
-      this.dialogTitle = 'View Transfer Fee'
+      this.dialogTitle = 'View Channel Fee'
       this.disableInput = true
       this.dialogVisible = true
       this.checkStrictly = true
       this.channelFee = deepClone(scope.row)
       this.handleFeeType(this.channelFee.type)
       this.channelFee.channelAccountId = this.channelFee.channelAccountId + ''
+      this.channelFee.category = this.channelFee.category + ''
       this.channelFee.feeMode = this.channelFee.feeMode + ''
     },
     handleEdit(scope) {
-      this.dialogTitle = 'Edit Transfer Fee'
+      this.dialogTitle = 'Edit Channel Fee'
       this.disableInput = false
       this.dialogType = 'edit'
       this.dialogVisible = true
@@ -308,6 +332,7 @@ export default {
       this.channelFee = deepClone(scope.row)
       this.handleFeeType(this.channelFee.type)
       this.channelFee.channelAccountId = this.channelFee.channelAccountId + ''
+      this.channelFee.category = this.channelFee.category + ''
       this.channelFee.feeMode = this.channelFee.feeMode + ''
     },
     async confirmChannelFee() {

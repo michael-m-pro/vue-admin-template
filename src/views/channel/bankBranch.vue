@@ -179,7 +179,7 @@ const defaultRole = {
   phone: '',
   paymentMode: '',
   status: null,
-  fileds: ''
+  fields: ''
 }
 
 export default {

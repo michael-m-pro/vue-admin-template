@@ -5,47 +5,42 @@
         <el-input v-model="queryForm.pageNum" class="hidden" />
         <el-input v-model="queryForm.pageSize" class="hidden" />
         <el-form-item label="">
-          <el-input v-model="queryForm.code" style="width:230px" placeholder="Code" />
+          <el-input v-model="queryForm.uid" clearable style="width:230px" placeholder="uid" />
         </el-form-item>
         <el-form-item label="">
-          <el-input v-model="queryForm.name" style="width:230px" placeholder="Name" />
+          <el-input v-model="queryForm.currency" clearable style="width:230px" placeholder="Curreny" />
         </el-form-item>
         <el-form-item>
           <el-button :loading="loading" type="primary" @click="handleQuery">Query</el-button>
-          <el-button v-show="showButton('Add',actions)" type="primary" @click="handleAdd()">Add Dictionary</el-button>
+          <!-- <el-button v-show="showButton('Add',actions)" type="primary" @click="handleAdd()">Add AccountInfo</el-button> -->
         </el-form-item>
       </el-form>
     </div>
 
-    <el-table :data="dictionaryList" style="width:100%;margin-top:30px;" border>
+    <el-table :data="accountInfoList" style="width:100%;margin-top:30px;" border>
       <el-table-column v-if="false" align="center" label="Organization Id">
         <template slot-scope="scope">
           {{ scope.row.id }}
         </template>
       </el-table-column>
-      <el-table-column v-if="false" align="center" fixed label="Superior Code" width="200">
+      <el-table-column align="center" fixed label="uid" width="200">
         <template slot-scope="scope">
-          {{ scope.row.parentId }}
+          {{ scope.row.uid }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="Code" width="200">
+      <el-table-column align="center" label="Account No" width="200">
         <template slot-scope="scope">
-          {{ scope.row.code == null?'┗':scope.row.code }}
+          {{ scope.row.accountNo }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="Name" width="200">
+      <el-table-column align="center" label="Currency" width="200">
         <template slot-scope="scope">
-          {{ scope.row.name }}
+          {{ scope.row.currency }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="Type" width="200">
+      <el-table-column align="center" label="Balance" width="200">
         <template slot-scope="scope">
-          {{ scope.row.type | typeTextFilter }}
-        </template>
-      </el-table-column>
-      <el-table-column align="center" label="value" width="200">
-        <template slot-scope="scope">
-          {{ scope.row.value }}
+          {{ scope.row.balance }}
         </template>
       </el-table-column>
       <el-table-column align="center" label="Status" width="200">
@@ -55,40 +50,42 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column align="center" fixed="right" label="Operations">
+      <el-table-column align="center" label="category" width="400">
+        <template slot-scope="scope">
+          {{ categories[scope.row.category+''].name }}
+        </template>
+      </el-table-column>
+      <el-table-column align="center" label="Create Time" width="200">
+        <template slot-scope="scope">
+          {{ scope.row.createTime }}
+        </template>
+      </el-table-column>
+      <el-table-column align="center" fixed="right" label="Operations" width="200">
         <template slot-scope="scope">
           <el-button v-show="showButton('View',actions)" type="primary" size="small" @click="handleView(scope)">View</el-button>
-          <el-button v-show="showButton('Edit',actions)" type="primary" size="small" @click="handleEdit(scope)">Edit</el-button>
-          <el-button v-show="showButton('Add',actions)" v-if="scope.row.parentId==scope.row.id" type="primary" size="small" @click="handleAddSub(scope)">Add Subset</el-button>
+          <el-button v-show="showButton('Edit',actions)" type="danger" size="small" @click="handleEdit(scope)">Edit</el-button>
         </template>
       </el-table-column>
     </el-table>
     <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="handleQuery" />
 
     <el-dialog :close-on-click-modal="false" :visible.sync="dialogVisible" :title="dialogTitle">
-      <el-form :model="dictionary" label-width="120px" label-position="right">
-        <el-input v-model="dictionary.id" class="hidden" />
-        <el-form-item label="Display Name">
-          <el-input v-model="dictionary.name" :disabled="disableInput" placeholder="Please enter the Display name" />
+      <el-form :model="accountInfo" label-width="120px" label-position="right">
+        <el-input v-model="accountInfo.id" class="hidden" />
+        <el-form-item label="uid">
+          <el-input v-model="accountInfo.uid" :disabled="disableInput" />
         </el-form-item>
-        <el-form-item :class="{'hidden':addSubset||dictionary.parentId!=null}" label="Code">
-          <el-input v-model="dictionary.code" :disabled="disableInput" placeholder="Please enter the code" />
+        <el-form-item label="Account No">
+          <el-input v-model="accountInfo.accountNo" :disabled="disableInput" />
         </el-form-item>
-        <el-form-item label="Value">
-          <el-input v-model="dictionary.value" :disabled="disableInput" placeholder="Please enter the value" />
+        <el-form-item label="Currency">
+          <el-input v-model="accountInfo.currency" :disabled="disableInput" />
         </el-form-item>
-        <el-form-item label="Type">
-          <el-select v-model="dictionary.type" :disabled="disableInput||addSubset" placeholder="Please Select">
-            <el-option
-              v-for="item in dictTypes"
-              :key="item.key"
-              :label="item.label"
-              :value="item.key"
-            />
-          </el-select>
+        <el-form-item label="Balance">
+          <el-input v-model="accountInfo.balance" :disabled="disableInput" />
         </el-form-item>
         <el-form-item label="Status">
-          <el-select v-model="dictionary.status" :disabled="disableInput" placeholder="Please Select">
+          <el-select v-model="accountInfo.status" placeholder="Please Select">
             <el-option
               v-for="item in statusList"
               :key="item.key"
@@ -97,9 +94,19 @@
             />
           </el-select>
         </el-form-item>
+        <el-form-item label="Category">
+          <el-select v-model="accountInfo.category" :disabled="disableInput||addSubset" style="width:50%" placeholder="Please Select">
+            <el-option
+              v-for="(val,key) in categories"
+              :key="key"
+              :label="val.name"
+              :value="key"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="JSON Field">
           <el-input
-            v-model="dictionary.fields"
+            v-model="accountInfo.fields"
             :autosize="{ minRows: 4, maxRows: 6}"
             type="textarea"
             :disabled="disableInput"
@@ -109,7 +116,7 @@
       </el-form>
       <div style="text-align:right;">
         <el-button :class="{'hidden':disableInput}" type="danger" @click="dialogVisible=false">Cancel</el-button>
-        <el-button :class="{'hidden':disableInput}" type="primary" @click="confirmDictionary">Confirm</el-button>
+        <el-button :class="{'hidden':disableInput}" type="primary" @click="confirmAccountInfo">Confirm</el-button>
       </div>
     </el-dialog>
   </div>
@@ -118,18 +125,18 @@
 <script>
 import Pagination from '@/components/Pagination'
 import { deepClone } from '@/utils'
-import { addDictionary, getDictionaries, updateDictionary } from '@/api/dictionary'
+import { init, addAccountInfo, getAccountInfos, updateAccountInfo } from '@/api/fundingAccount'
 
 const defaultRole = {
   id: null,
-  parentId: null,
-  name: '',
-  code: null,
-  value: '',
+  uid: '',
+  accountNo: '',
+  currency: '',
+  balance: '',
   status: null,
-  encrypted: null,
-  type: null,
-  fields: ''
+  category: null,
+  createTime: null,
+  updateTime: null
 }
 
 export default {
@@ -144,7 +151,7 @@ export default {
     },
     typeTextFilter(status) {
       const textMap = {
-        0: 'Dictionary',
+        0: 'AccountInfo',
         1: 'Parameters'
       }
       return textMap[status]
@@ -152,22 +159,23 @@ export default {
   },
   data() {
     return {
-      dictionary: Object.assign({}, defaultRole),
+      accountInfo: Object.assign({}, defaultRole),
       routes: [],
       queryForm: {
-        code: '',
-        name: '',
+        uid: '',
+        currency: '',
         pageNum: '',
         pageSize: ''
       },
       actions: [],
-      dictionaryList: [],
+      accountInfoList: [],
+      categories: {},
       statusList: [
         { 'key': 0, 'label': 'Disable' },
         { 'key': 1, 'label': 'Normal' }
       ],
       dictTypes: [
-        { 'key': 0, 'label': 'Dictionary' },
+        { 'key': 0, 'label': 'AccountInfo' },
         { 'key': 1, 'label': 'Parameters' }
       ],
       dialogVisible: false,
@@ -196,74 +204,72 @@ export default {
   },
   created() {
     this.actions = this.storage(this.$route.name)
-    this.getDictionaries()
+    this.init()
+    this.getAccountInfos()
   },
   methods: {
-    async getDictionaries(query) {
+    async init() {
       this.loading = true
-      const { data } = await getDictionaries(query)
-      this.dictionaryList = data.list
+      const { data } = await init()
+      this.categories = data.FUNDING_ACCOUNT_CATEGORY
+    },
+    async getAccountInfos(query) {
+      this.loading = true
+      const { data } = await getAccountInfos(query)
+      this.accountInfoList = data.list
       this.total = data.page.total
       this.loading = false
     },
     handleAdd() {
       this.disableInput = false
-      this.dictionary = Object.assign({}, defaultRole)
+      this.accountInfo = Object.assign({}, defaultRole)
       this.dialogType = 'new'
-      this.dialogTitle = 'New Dictionary'
+      this.dialogTitle = 'New AccountInfo'
       this.dialogVisible = true
       this.addSubset = false
-    },
-    handleAddSub(scope) {
-      this.disableInput = false
-      this.dictionary = Object.assign({}, defaultRole)
-      this.dialogType = 'new'
-      this.dialogTitle = 'New Sub Dictionary'
-      this.dialogVisible = true
-      this.dictionary.type = 0
-      this.addSubset = true
-      this.dictionary.parentId = scope.row.id
     },
     handleQuery() {
       this.queryForm.pageNum = this.listQuery.page
       this.queryForm.pageSize = this.listQuery.limit
-      this.getDictionaries(this.queryForm)
+      this.getAccountInfos(this.queryForm)
     },
     handleView(scope) {
-      this.dialogTitle = 'View Dictionary'
+      this.dialogTitle = 'View AccountInfo'
       this.disableInput = true
       this.dialogVisible = true
       this.checkStrictly = true
-      this.dictionary = deepClone(scope.row)
+      this.accountInfo = deepClone(scope.row)
+      this.accountInfo.category = this.accountInfo.category + ''
     },
     handleEdit(scope) {
-      this.dialogTitle = 'Edit Dictionary'
-      this.disableInput = false
+      this.dialogTitle = 'Edit AccountInfo'
+      this.disableInput = true
       this.dialogType = 'edit'
       this.dialogVisible = true
       this.checkStrictly = true
-      this.dictionary = deepClone(scope.row)
+      this.accountInfo = deepClone(scope.row)
       this.addSubset = false
+      this.accountInfo.category = this.accountInfo.category + ''
     },
-    async confirmDictionary() {
+    async confirmAccountInfo() {
       const isEdit = this.dialogType === 'edit'
       if (isEdit) {
-        await updateDictionary(this.dictionary)
+        await updateAccountInfo(this.accountInfo)
         this.dialogVisible = false
         this.$message({
           type: 'success',
           message: 'The parameter update success !'
         })
       } else {
-        const { data } = await addDictionary(this.dictionary)
+        const { data } = await addAccountInfo(this.accountInfo)
         this.dialogVisible = false
-        this.dictionary.id = data.id
+        this.accountInfo.id = data.id
         this.$message({
           type: 'success',
           message: 'The parameter add success !'
         })
       }
-      this.getDictionaries()
+      this.getAccountInfos()
     }
   }
 }

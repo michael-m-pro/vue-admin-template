@@ -32,7 +32,7 @@
       </el-table-column>
       <el-table-column align="center" fixed label="Channel Code" width="200">
         <template slot-scope="scope">
-          {{ scope.row.channelCode }}
+          {{ channelCodes[scope.row.channelCode].name }}
         </template>
       </el-table-column>
       <el-table-column align="center" label="Location Id" width="200">
@@ -45,9 +45,14 @@
           {{ scope.row.bankId }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="Bank Branch" width="500">
+      <el-table-column align="center" label="Bank Branch" width="600">
         <template slot-scope="scope">
           {{ scope.row.bankBranch }}
+        </template>
+      </el-table-column>
+      <el-table-column align="center" label="Bank Name" width="600">
+        <template slot-scope="scope">
+          {{ scope.row.bankName }}
         </template>
       </el-table-column>
       <el-table-column align="center" label="Transation Mode" width="200">
@@ -55,7 +60,7 @@
           {{ scope.row.transactionMode }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="Status" width="200">
+      <el-table-column v-if="false" align="center" label="Status" width="200">
         <template slot-scope="{row}">
           <el-tag>
             {{ row.status | statusTextFilter }}
@@ -75,7 +80,7 @@
       <el-form :model="bankBranch" label-width="150px" label-position="right">
         <el-input v-model="bankBranch.id" class="hidden" />
         <el-form-item label="Channel Code">
-          <el-select v-model="queryForm.channelCode" clearable placeholder="Please Select">
+          <el-select v-model="bankBranch.channelCode" :disabled="disableInput" clearable placeholder="Please Select">
             <el-option
               v-for="(val,key) in channelCodes"
               :key="key"
@@ -136,7 +141,7 @@
         <el-form-item label="Holidays">
           <el-input v-model="bankBranch.holidays" :disabled="disableInput" placeholder="Please enter the holidays" />
         </el-form-item>
-        <el-form-item label="Status">
+        <el-form-item v-if="false" label="Status">
           <el-select v-model="bankBranch.status" :disabled="disableInput" placeholder="Please Select">
             <el-option
               v-for="item in statusList"

@@ -1,32 +1,33 @@
 <template>
   <el-row :gutter="40" class="panel-group">
-    <el-col :xs="12" :sm="12" :lg="6" class="card-panel-col">
-      <div class="card-panel" @click="handleSetLineChartData('newVisitis')">
-        <div class="card-panel-icon-wrapper icon-people">
-          <svg-icon icon-class="peoples" class-name="card-panel-icon" />
-        </div>
-        <div class="card-panel-description">
-          <div class="card-panel-text">
-            New Visits
+    <!-- <template v-for="item in balanceList">
+      <el-col :key="item.index" :xs="12" :sm="12" :lg="6" class="card-panel-col">
+        <div class="card-panel">
+          <div class="card-panel-icon-wrapper icon-message">
+            <div class="card-panel-text">{{ accountCategoryMap[item.category+''].name }}</div>
           </div>
-          <count-to :start-val="0" :end-val="102400" :duration="2600" class="card-panel-num" />
-        </div>
-      </div>
-    </el-col>
-    <el-col :xs="12" :sm="12" :lg="6" class="card-panel-col">
-      <div class="card-panel" @click="handleSetLineChartData('messages')">
-        <div class="card-panel-icon-wrapper icon-message">
-          <svg-icon icon-class="message" class-name="card-panel-icon" />
-        </div>
-        <div class="card-panel-description">
-          <div class="card-panel-text">
-            Messages
+          <div class="card-panel-description" style="float">
+            <div class="card-panel-text">
+              {{ item.currency }}
+            </div>
+            <div class="card-panel-num">{{ item.balance +'222222222' }}</div>
           </div>
-          <count-to :start-val="0" :end-val="81212" :duration="3000" class="card-panel-num" />
         </div>
-      </div>
-    </el-col>
-    <el-col :xs="12" :sm="12" :lg="6" class="card-panel-col">
+      </el-col>
+    </template> -->
+    <template v-for="item in balanceList">
+      <el-col :key="item.index" :xs="12" :sm="12" :lg="6" class="card-panel-col">
+        <div class="card-panel">
+          <div class="card-panel-description">
+            <div class="card-panel-text">
+              {{ accountCategoryMap[item.category+''].name }}
+            </div>
+            <div class="card-panel-num">{{ item.balance }} {{ item.currency }}</div>
+          </div>
+        </div>
+      </el-col>
+    </template>
+    <!--<el-col :xs="12" :sm="12" :lg="6" class="card-panel-col">
       <div class="card-panel" @click="handleSetLineChartData('purchases')">
         <div class="card-panel-icon-wrapper icon-money">
           <svg-icon icon-class="money" class-name="card-panel-icon" />
@@ -51,20 +52,45 @@
           <count-to :start-val="0" :end-val="13600" :duration="3600" class="card-panel-num" />
         </div>
       </div>
-    </el-col>
+    </el-col> -->
   </el-row>
 </template>
 
 <script>
-import CountTo from 'vue-count-to'
+// import CountTo from 'vue-count-to'
+import { init, queryBalance } from '@/api/user'
 
 export default {
   components: {
-    CountTo
+    // CountTo
+  },
+  data() {
+    return {
+      userInfo: {
+        userName: '',
+        userType: ''
+      },
+      balanceList: [],
+      accountCategoryMap: {}
+    }
+  },
+  created() {
+    const data = this.storage('userInfo')
+    this.userInfo = data
+    this.init()
+    this.queryBalance()
   },
   methods: {
     handleSetLineChartData(type) {
       this.$emit('handleSetLineChartData', type)
+    },
+    async init() {
+      const { data } = await init()
+      this.accountCategoryMap = data.FUNDING_ACCOUNT_CATEGORY
+    },
+    async queryBalance() {
+      const { data } = await queryBalance()
+      this.balanceList = data
     }
   }
 }
@@ -79,6 +105,7 @@ export default {
   }
 
   .card-panel {
+    text-align: center;
     height: 108px;
     cursor: pointer;
     font-size: 12px;
@@ -141,7 +168,7 @@ export default {
     }
 
     .card-panel-description {
-      float: right;
+      // float: right;
       font-weight: bold;
       margin: 26px;
       margin-left: 0px;

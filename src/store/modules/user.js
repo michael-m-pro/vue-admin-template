@@ -1,4 +1,4 @@
-import { login, addGA, logout, getInfo, init, addUser, updateUser, deleteUser, getApiKey, createApiKey, updateApiKey, resetApiKey } from '@/api/user'
+import { login, addGA, logout, getInfo, init, addUser, updateUser, deleteUser, getApiKey, createApiKey, updateApiKey, resetApiKey, queryBalance } from '@/api/user'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import router, { resetRouter } from '@/router'
 import { storage } from '@/utils'
@@ -127,6 +127,15 @@ const actions = {
       })
     })
   },
+  queryBalance(data) {
+    return new Promise((resolve, reject) => {
+      queryBalance(data).then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
   createApiKey(data) {
     return new Promise((resolve, reject) => {
       createApiKey(data).then(response => {
@@ -174,7 +183,7 @@ const actions = {
         } else {
           commit('SET_AVATAR', avatar)
         }
-
+        storage('userInfo', data)
         commit('SET_NAME', userName)
         commit('SET_ROLES', roles)
         resolve(data)

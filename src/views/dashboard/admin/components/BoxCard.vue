@@ -5,20 +5,21 @@
     </div>
     <div style="position:relative;">
       <pan-thumb :image="avatar" class="panThumb" />
-      <mallki class-name="mallki-text" text="vue-element-admin" />
+      <mallki class-name="mallki-text" :text="name" />
       <div style="padding-top:35px;" class="progress-item">
-        <span>Vue</span>
-        <el-progress :percentage="70" />
+        <span v-if="userInfo.userType < 2">Manager</span>
+        <span v-else>Merchant</span>
+        <!-- <el-progress :percentage="70" /> -->
       </div>
-      <div class="progress-item">
+      <div v-if="false" class="progress-item">
         <span>JavaScript</span>
         <el-progress :percentage="18" />
       </div>
-      <div class="progress-item">
+      <div v-if="false" class="progress-item">
         <span>CSS</span>
         <el-progress :percentage="12" />
       </div>
-      <div class="progress-item">
+      <div v-if="false" class="progress-item">
         <span>ESLint</span>
         <el-progress :percentage="100" status="success" />
       </div>
@@ -57,6 +58,13 @@ export default {
       'avatar',
       'roles'
     ])
+  },
+  created() {
+    const data = this.storage('userInfo')
+    this.userInfo = data
+  },
+  methods: {
+
   }
 }
 </script>

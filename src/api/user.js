@@ -51,6 +51,13 @@ export function getInfo(token) {
     params: { token }
   })
 }
+export function queryBalance(token) {
+  return request({
+    url: '/user/queryBalance',
+    method: 'get',
+    params: { token }
+  })
+}
 
 export function logout() {
   return request({

@@ -2,13 +2,13 @@ import request from '@/utils/request'
 
 export function init(data) {
   return request({
-    url: '/transferOrder/init',
+    url: '/apiOrder/init',
     method: 'get'
   })
 }
 export function getApiOrders(data) {
   return request({
-    url: '/transferOrder/list',
+    url: '/apiOrder/list',
     method: 'get',
     params: data
   })

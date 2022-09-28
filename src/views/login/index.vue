@@ -99,10 +99,8 @@
         <div class="tip-GA">
           <span> You haven't set up Google Authenticator 2FA token. For your account security, please use google authenticator to scan the QR code below.</span>
         </div>
-        <div>
-          <span style="margin-right:20px;">
-            <img :src="qrCode">
-          </span>
+        <div style="width: 200px; height: 200px; border: 1px solid rgb(34, 39, 46); background: rgb(255, 255, 255);padding: 0.5rem;border-radius: 0.375rem;">
+          <img :src="qrCode" style="width:100%;hight:100%;display:block;">
         </div>
       </div>
 
